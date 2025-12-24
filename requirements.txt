@@ -1,0 +1,26 @@
+# Core llama-index packages (modern modular structure)
+llama-index-core>=0.10.0
+llama-index-embeddings-ollama>=0.1.0
+llama-index-llms-ollama>=0.1.0
+llama-index-vector-stores-chroma>=0.1.0
+
+# Vector database
+chromadb>=0.4.0
+
+# PDF processing
+PyPDF2>=3.0.0
+Flask>=3.0.0
+
+# Additional document format support
+python-docx>=1.0.0        # For .docx files
+pandas>=2.0.0             # For .csv and .xlsx files
+openpyxl>=3.1.0           # For .xlsx files (Excel)
+beautifulsoup4>=4.12.0    # For .html files
+lxml>=4.9.0               # Parser for beautifulsoup4
+
+# Note: The old monolithic package was 'llama_index' (llama_index==0.14.7) but modern versions
+# split into separate packages matching the import structure:
+# - llama_index.core -> llama-index-core
+# - llama_index.embeddings.ollama -> llama-index-embeddings-ollama
+# - llama_index.llms.ollama -> llama-index-llms-ollama
+# - llama_index.vector_stores.chroma -> llama-index-vector-stores-chroma

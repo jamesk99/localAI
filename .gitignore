@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Data files (persistent, not in version control)
+data/tracking.db
+data/tracking.db-journal
+data/vectordb/
+data/raw/*.pdf
+data/raw/*.txt
+data/raw/*.md
+
+# Keep directory structure but ignore contents
+!data/raw/.gitkeep
+!data/vectordb/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+#Archive
+archive/
