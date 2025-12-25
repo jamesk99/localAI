@@ -19,7 +19,9 @@ sys.path.append(os.path.dirname(__file__))
 from config import (
     VECTOR_DB_DIR, COLLECTION_NAME, TOP_K,
     LLM_MODEL, LLM_FALLBACK, EMBED_MODEL, OLLAMA_BASE_URL,
-    SIMILARITY_THRESHOLD
+    SIMILARITY_THRESHOLD, LLM_TEMPERATURE, LLM_CONTEXT_WINDOW,
+    LLM_REQUEST_TIMEOUT, LLM_NUM_PREDICT, GPU_LAYERS, NUM_GPU,
+    MAX_CHUNKS_IN_CONTEXT
 )
 
 
@@ -40,8 +42,13 @@ def initialize_rag_system():
         llm = Ollama(
             model=LLM_MODEL,
             base_url=OLLAMA_BASE_URL,
-            request_timeout=180.0,
-            temperature=0.1,  # Lower temperature for more focused responses
+            request_timeout=LLM_REQUEST_TIMEOUT,
+            temperature=LLM_TEMPERATURE,
+            context_window=LLM_CONTEXT_WINDOW,
+            additional_kwargs={
+                "num_predict": LLM_NUM_PREDICT,
+                "num_gpu": NUM_GPU,
+            }
         )
         print(f"   ✅ Using {LLM_MODEL}")
     except Exception as e:
@@ -51,8 +58,13 @@ def initialize_rag_system():
             llm = Ollama(
                 model=LLM_FALLBACK,
                 base_url=OLLAMA_BASE_URL,
-                request_timeout=120.0,
-                temperature=0.1,
+                request_timeout=LLM_REQUEST_TIMEOUT,
+                temperature=LLM_TEMPERATURE,
+                context_window=LLM_CONTEXT_WINDOW,
+                additional_kwargs={
+                    "num_predict": LLM_NUM_PREDICT,
+                    "num_gpu": NUM_GPU,
+                }
             )
             print(f"   ✅ Using fallback {LLM_FALLBACK}")
         except Exception as e2:
@@ -89,6 +101,8 @@ def initialize_rag_system():
     print(f"✅ RAG system initialized")
     print(f"   Embedding model: {EMBED_MODEL}")
     print(f"   LLM: {LLM_MODEL}")
+    print(f"   Context window: {LLM_CONTEXT_WINDOW} tokens")
+    print(f"   GPU layers: {GPU_LAYERS if GPU_LAYERS > 0 else 'auto'}")
     print(f"   Top-K retrieval: {TOP_K}")
     
     return index
@@ -97,10 +111,13 @@ def initialize_rag_system():
 def create_query_engine(index):
     """Create a query engine with retriever and response synthesis."""
     
-    # Configure retriever
+    # Configure retriever with dynamic top-k based on context window
+    # For larger context windows, we can retrieve more chunks
+    effective_top_k = min(TOP_K, MAX_CHUNKS_IN_CONTEXT)
+    
     retriever = VectorIndexRetriever(
         index=index,
-        similarity_top_k=TOP_K,
+        similarity_top_k=effective_top_k,
     )
     
     # Add similarity threshold filter to remove irrelevant chunks
