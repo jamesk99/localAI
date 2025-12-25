@@ -192,24 +192,29 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 
 #### Phase 2: Advanced RAG (Short-term)
 
-1. Implement hybrid search (dense + BM25)
-2. Add reranking layer
-3. Improve chunking strategy (semantic splitting)
-4. Add query routing and multi-query retrieval
+1. **Hybrid search**: Implement BM25Retriever + QueryFusionRetriever with reciprocal rank fusion (implement hybrid search, dense)
+2. **Reranking**: Add bge-reranker-v2-m3 cross-encoder (retrieve 10, rerank to 3) (add reranking layer)
+3. **Semantic chunking**: Use SemanticSplitterNodeParser for topic-aware splitting (semantic splitting to improve chunking strategy)
+4. **Parent-document retrieval**: Retrieve small chunks (512), return large context (2048)
+5. **HyDE**: Add HyDEQueryTransform for complex queries
+6. **Metadata filtering**: Enable date/type/source filtering in ChromaDB
+7. Query routing and multi-query retrieval (??? redundant???)
 
 #### Phase 3: Production Features (Medium-term)
 
-1. Async ingestion with progress tracking
-2. Query caching layer
-3. Evaluation framework and metrics
-4. Monitoring dashboard
+1. **Async ingestion**: RQ (Redis Queue) for background document processing (with progress tracking)
+2. **Query caching**: diskcache for persistent caching (simpler than Redis) (query caching layer)
+3. **Streaming responses**: LlamaIndex native streaming for better UX
+4. **Evaluation**: RAGAS framework (faithfulness, relevance, precision, recall) (evaluation framework and metrics)
+5. **Monitoring**: Streamlit dashboard for latency/throughput/quality metrics
+6. **Query routing**: Route to specialized indices based on document type (if needed)
 
 #### Phase 4: Scale & Polish (Long-term)
 
-1. Multi-user support with RBAC
-2. Modern React UI
-3. Conversation management
-4. Advanced analytics
+1. **Multi-user RBAC**: Flask-Security-Too for role-based access control
+2. **Modern UI**: HTMX (simpler, Python-focused) or Svelte (if rich UI needed) as opposed to original idea (modern react ui)
+3. **Conversation management**: ChatMemoryBuffer with SQLite storage
+4. **Advanced analytics**: Query patterns, failure modes, user behavior tracking
 
 ### Principles
 
