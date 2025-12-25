@@ -27,7 +27,7 @@ from config import (
 
 def initialize_rag_system():
     """Initialize the RAG system with vector store and LLM."""
-    print("🔧 Initializing RAG system...")
+    print("Initializing RAG system...")
     
     # 1. Configure embedding model
     embed_model = OllamaEmbedding(
@@ -50,9 +50,9 @@ def initialize_rag_system():
                 "num_gpu": NUM_GPU,
             }
         )
-        print(f"   ✅ Using {LLM_MODEL}")
+        print(f"   Using {LLM_MODEL}")
     except Exception as e:
-        print(f"   ⚠️  Primary LLM {LLM_MODEL} unavailable: {str(e)[:100]}")
+        print(f"   Primary LLM {LLM_MODEL} unavailable: {str(e)[:100]}")
         print(f"   Falling back to: {LLM_FALLBACK}")
         try:
             llm = Ollama(
@@ -66,9 +66,9 @@ def initialize_rag_system():
                     "num_gpu": NUM_GPU,
                 }
             )
-            print(f"   ✅ Using fallback {LLM_FALLBACK}")
+            print(f"   Using fallback {LLM_FALLBACK}")
         except Exception as e2:
-            print(f"   ❌ Fallback also failed: {str(e2)[:100]}")
+            print(f"   Fallback also failed: {str(e2)[:100]}")
             print(f"   Please ensure Ollama is running and models are available")
             raise
     
@@ -85,7 +85,7 @@ def initialize_rag_system():
     try:
         chroma_collection = chroma_client.get_collection(name=COLLECTION_NAME)
     except Exception as e:
-        print(f"\n❌ Error: Vector store not found!")
+        print(f"\n Error: Vector store not found!")
         print(f"   Please run ingest.py first to create the vector database.")
         print(f"   Collection '{COLLECTION_NAME}' does not exist in {VECTOR_DB_DIR}")
         sys.exit(1)
@@ -98,12 +98,12 @@ def initialize_rag_system():
         embed_model=embed_model
     )
     
-    print(f"✅ RAG system initialized")
-    print(f"   Embedding model: {EMBED_MODEL}")
-    print(f"   LLM: {LLM_MODEL}")
-    print(f"   Context window: {LLM_CONTEXT_WINDOW} tokens")
-    print(f"   GPU layers: {GPU_LAYERS if GPU_LAYERS > 0 else 'auto'}")
-    print(f"   Top-K retrieval: {TOP_K}")
+    print(f" RAG system initialized")
+    print(f" Embedding model: {EMBED_MODEL}")
+    print(f" LLM: {LLM_MODEL}")
+    print(f" Context window: {LLM_CONTEXT_WINDOW} tokens")
+    print(f" GPU layers: {GPU_LAYERS if GPU_LAYERS > 0 else 'auto'}")
+    print(f" Top-K retrieval: {TOP_K}")
     
     return index
 
@@ -210,24 +210,24 @@ def format_response(response) -> Dict:
 def query_interactive(query_engine):
     """Interactive query loop."""
     print("\n" + "=" * 60)
-    print("💬 RAG QUERY INTERFACE")
+    print("RAG QUERY INTERFACE")
     print("=" * 60)
     print("Type your questions below (or 'quit' to exit)")
     print("-" * 60)
     
     while True:
         try:
-            question = input("\n❓ Your question: ").strip()
+            question = input("\nYour question: ").strip()
             
             if question.lower() in ['quit', 'exit', 'q']:
-                print("\n👋 Goodbye!")
+                print("\nGoodbye!")
                 break
             
             if not question:
                 continue
             
-            print(f"\n🔍 Retrieving relevant context...")
-            print(f"🤖 Generating response...\n")
+            print(f"\nRetrieving relevant context...")
+            print(f"Generating response...\n")
             
             # Query the system with fallback on OOM error
             try:
@@ -237,8 +237,8 @@ def query_interactive(query_engine):
                 error_msg = str(query_error)
                 # Check if it's an OOM error
                 if "system memory" in error_msg or "status code: 500" in error_msg:
-                    print(f"⚠️  Primary model failed (insufficient memory)")
-                    print(f"🔄 Retrying with fallback model: {LLM_FALLBACK}...\n")
+                    print(f"Primary model failed (insufficient memory)")
+                    print(f"Retrying with fallback model: {LLM_FALLBACK}...\n")
                     
                     # Reinitialize with fallback model
                     from llama_index.llms.ollama import Ollama
@@ -260,42 +260,42 @@ def query_interactive(query_engine):
                     raise
             
             # Display answer
-            print("📝 Answer:")
+            print("Answer:")
             print("-" * 60)
             print(result["answer"])
             print("-" * 60)
             
             # Display sources
             if result["sources"]:
-                print(f"\n📚 Sources (Top {len(result['sources'])} chunks):")
+                print(f"\nSources (Top {len(result['sources'])} chunks):")
                 for source in result["sources"]:
                     print(f"\n   [{source['chunk_id']}] Score: {source['score']:.3f}")
                     print(f"   File: {source['metadata'].get('filename', 'Unknown')}")
                     print(f"   Preview: {source['text']}")
             
         except KeyboardInterrupt:
-            print("\n\n👋 Goodbye!")
+            print("\n\nGoodbye!")
             break
         except Exception as e:
-            print(f"\n❌ Error: {e}")
+            print(f"\nError: {e}")
 
 
 def query_single(query_engine, question: str):
     """Query with a single question and return."""
-    print(f"\n❓ Question: {question}")
-    print(f"\n🔍 Retrieving relevant context...")
-    print(f"🤖 Generating response...\n")
+    print(f"\nQuestion: {question}")
+    print(f"\nRetrieving relevant context...")
+    print(f"Generating response...\n")
     
     response = query_engine.query(question)
     result = format_response(response)
     
-    print("📝 Answer:")
+    print("Answer:")
     print("-" * 60)
     print(result["answer"])
     print("-" * 60)
     
     if result["sources"]:
-        print(f"\n📚 Sources (Top {len(result['sources'])} chunks):")
+        print(f"\nSources (Top {len(result['sources'])} chunks):")
         for source in result["sources"]:
             print(f"\n   [{source['chunk_id']}] Score: {source['score']:.3f}")
             print(f"   File: {source['metadata'].get('filename', 'Unknown')}")

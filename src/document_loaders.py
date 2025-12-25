@@ -26,7 +26,7 @@ class TextLoader(DocumentLoader):
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
-            print(f"   ❌ Error loading text file: {e}")
+            print(f"   Error loading text file: {e}")
             return None
 
 
@@ -43,7 +43,7 @@ class PDFLoader(DocumentLoader):
                     text += page.extract_text() + "\n"
             return text
         except Exception as e:
-            print(f"   ❌ Error loading PDF: {e}")
+            print(f"    Error loading PDF: {e}")
             return None
 
 
@@ -71,10 +71,10 @@ class DocxLoader(DocumentLoader):
             
             return "\n".join(text)
         except ImportError:
-            print(f"   ⚠️  python-docx not installed. Install with: pip install python-docx")
+            print(f"     python-docx not installed. Install with: pip install python-docx")
             return None
         except Exception as e:
-            print(f"   ❌ Error loading DOCX: {e}")
+            print(f"    Error loading DOCX: {e}")
             return None
 
 
@@ -106,7 +106,7 @@ class CSVLoader(DocumentLoader):
             
             return "\n".join(text)
         except Exception as e:
-            print(f"   ❌ Error loading CSV: {e}")
+            print(f"    Error loading CSV: {e}")
             return None
 
 
@@ -124,7 +124,7 @@ class JSONLoader(DocumentLoader):
             # Convert JSON to readable text format
             return json.dumps(data, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"   ❌ Error loading JSON: {e}")
+            print(f"    Error loading JSON: {e}")
             return None
 
 
@@ -155,10 +155,10 @@ class HTMLLoader(DocumentLoader):
             
             return text
         except ImportError:
-            print(f"   ⚠️  beautifulsoup4 not installed. Install with: pip install beautifulsoup4")
+            print(f"   beautifulsoup4 not installed. Install with: pip install beautifulsoup4")
             return None
         except Exception as e:
-            print(f"   ❌ Error loading HTML: {e}")
+            print(f"   Error loading HTML: {e}")
             return None
 
 
@@ -187,10 +187,10 @@ class ExcelLoader(DocumentLoader):
             
             return "\n".join(text)
         except ImportError:
-            print(f"   ⚠️  pandas and openpyxl not installed. Install with: pip install pandas openpyxl")
+            print(f"   pandas and openpyxl not installed. Install with: pip install pandas openpyxl")
             return None
         except Exception as e:
-            print(f"   ❌ Error loading Excel: {e}")
+            print(f"   Error loading Excel: {e}")
             return None
 
 
@@ -237,7 +237,7 @@ def load_document(file_path: Path) -> Optional[str]:
     loader_class = get_loader(file_path)
     
     if loader_class is None:
-        print(f"   ⚠️  No loader available for {file_path.suffix} files")
+        print(f"   No loader available for {file_path.suffix} files")
         return None
     
     return loader_class.load(file_path)

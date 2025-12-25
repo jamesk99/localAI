@@ -48,18 +48,18 @@ def load_documents() -> List[Document]:
     for file_path in files:
         # CHECK IF ALREADY INGESTED
         if tracker.is_document_ingested(file_path):
-            print(f"   ⏭️  Skipping (already ingested): {file_path.name}")
+            print(f"     Skipping (already ingested): {file_path.name}")
             skipped_count += 1
             continue
         
         try:
-            print(f"   📥 Loading: {file_path.name}")
+            print(f"    Loading: {file_path.name}")
             
             # Use the new loader system
             text = load_document(file_path)
             
             if text is None:
-                print(f"   ⚠️  Skipped (could not load): {file_path.name}")
+                print(f"     Skipped (could not load): {file_path.name}")
                 continue
             
             if text.strip():
@@ -74,14 +74,14 @@ def load_documents() -> List[Document]:
                 documents.append(doc)
                 loaded_count += 1
             else:
-                print(f"   ⚠️  Skipped (empty): {file_path.name}")
+                print(f"     Skipped (empty): {file_path.name}")
                 
         except Exception as e:
-            print(f"   ❌ Error loading {file_path.name}: {e}")
+            print(f"    Error loading {file_path.name}: {e}")
     
-    print(f"\n📊 Summary:")
-    print(f"   ✅ New documents: {loaded_count}")
-    print(f"   ⏭️  Already ingested: {skipped_count}")
+    print(f"\n Summary:")
+    print(f"   New documents: {loaded_count}")
+    print(f"   Already ingested: {skipped_count}")
     
     return documents
 
@@ -122,7 +122,7 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
     # 1. Load documents
     documents = load_documents()
     if not documents:
-        print("\n✅ No new documents to ingest. Database is up to date.")
+        print("\n No new documents to ingest. Database is up to date.")
         return
     
     # 2. Configure embedding model
@@ -134,7 +134,7 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
         )
         LlamaSettings.embed_model = embed_model
     except Exception as e:
-        print(f"\n❌ ERROR: Cannot connect to Ollama at {OLLAMA_BASE_URL}")
+        print(f"\n ERROR: Cannot connect to Ollama at {OLLAMA_BASE_URL}")
         print(f"   Make sure Ollama is running: ollama serve")
         print(f"   Error: {e}")
         return
@@ -181,7 +181,7 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
                 if source_file:
                     doc_chunk_counts[source_file] = doc_chunk_counts.get(source_file, 0) + 1
     except Exception as e:
-        print(f"   ⚠️  Could not get chunk counts from ChromaDB: {e}")
+        print(f"     Could not get chunk counts from ChromaDB: {e}")
         # Fallback to estimation if ChromaDB query fails
         for doc in documents:
             doc_chunk_counts[str(Path(doc.metadata['file_path']))] = len(doc.text) // CHUNK_SIZE
@@ -194,7 +194,7 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
         print(f"   ✓ {file_path.name}: {actual_chunks} chunks")
     
     print("\n" + "=" * 60)
-    print("✅ INGESTION COMPLETE!")
+    print(" INGESTION COMPLETE!")
     print("=" * 60)
     print(f" Statistics:")
     print(f"   Documents processed: {len(documents)}")
