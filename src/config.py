@@ -9,9 +9,9 @@ NUM_GPU = int(os.getenv("NUM_GPU", "1"))  # Number of GPUs to use
 
 # Ollama Configuration
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-LLM_MODEL = os.getenv("LLM_MODEL", "llama3:latest")        # Primary LLM
-LLM_FALLBACK = os.getenv("LLM_FALLBACK", "deepseek-r1:latest")  # Fallback LLM (requires more RAM)
-EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+LLM_MODEL = os.getenv("LLM_MODEL", "qwen2.5:32b-instruct")        # Primary LLM (requires more RAM) 
+LLM_FALLBACK = os.getenv("LLM_FALLBACK", "llama3:latest")  # Fallback LLM 
+EMBED_MODEL = os.getenv("EMBED_MODEL", "qwen3-embedding:8b")
 
 # Model-specific settings for large models (70B-120B)
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
@@ -69,3 +69,25 @@ os.makedirs(VECTOR_DB_DIR, exist_ok=True)
 #CHUNK_SIZE = 512
 #CHUNK_OVERLAP = 50
 #TOP_K = 5  
+
+# New Model Ideas
+# For Ryzen AI with good VRAM: qwen2.5:32b-instruct -> qwen2.5:14b-instruct
+# For CPU-only or limited RAM: llama3.2:3b-instruct -> phi3:3.8b-instruct
+# Other Model 3: gemma2:2b-instruct
+# Other Model 4: qwen2.5:7b-instruct (good balance of size and quality for fallback)
+# Other Model 5: ???
+# Other Model 6: ???
+# Other Model 7: ???
+# Other Model 8: ???
+# Other Model 9: ???
+# Other Model 10: 
+
+# Embedding Model Ideas
+# qwen3-embedding:8b
+# embeddinggemma:300m
+# bge-m3:567m (or :latest)
+# nomic-embed-text
+
+
+# TODO: ollama pull qwen3-embedding:8b
+# TODO: ollama pull qwen2.5:32b-instruct
