@@ -5,13 +5,17 @@ from pathlib import Path
 from typing import List, Set
 import chromadb
 from chromadb.config import Settings
-from llama_index.core import Document, VectorStoreIndex, StorageContext
-from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core import VectorStoreIndex, StorageContext
+# REPLACED: Document with custom dataclass (see below)
+# from llama_index.core import Document
+# REPLACED: SentenceSplitter with custom pure Python implementation
+# from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import Settings as LlamaSettings
 from document_tracker import DocumentTracker
 from document_loaders import load_document, get_supported_extensions
+from text_chunker import chunk_text, get_chunk_stats
 
 sys.path.append(os.path.dirname(__file__))
 from config import (
@@ -19,7 +23,28 @@ from config import (
     CHUNK_SIZE, CHUNK_OVERLAP, EMBED_MODEL, OLLAMA_BASE_URL, TRACKING_DB_PATH
 )
 
-def load_documents() -> List[Document]:
+# Custom document structure to replace LlamaIndex Document abstraction
+# This gives us full transparency and control over document representation
+# REPLACED: def load_documents() -> List[Document]:
+from dataclasses import dataclass
+from typing import Dict, Any
+
+@dataclass
+class SimpleDocument:
+    """
+    Pure Python document container replacing llama_index.core.Document.
+    
+    This simple dataclass provides the same functionality as LlamaIndex's Document
+    but with complete transparency - no hidden methods or complex inheritance.
+    
+    Attributes:
+        text: The document content
+        metadata: Dictionary containing file information and other metadata
+    """
+    text: str
+    metadata: Dict[str, Any]
+
+def load_documents() -> List[SimpleDocument]:
     """Load documents from the raw data directory, skipping already ingested ones."""
     documents = []
     tracker = DocumentTracker(TRACKING_DB_PATH)
@@ -63,7 +88,19 @@ def load_documents() -> List[Document]:
                 continue
             
             if text.strip():
-                doc = Document(
+                # REPLACED: LlamaIndex Document with SimpleDocument dataclass
+                # OLD CODE (commented for reference):
+                # doc = Document(
+                #     text=text,
+                #     metadata={
+                #         "filename": file_path.name,
+                #         "file_type": file_path.suffix,
+                #         "file_path": str(file_path)
+                #     }
+                # )
+                
+                # NEW CODE: Pure Python dataclass - same functionality, more transparent
+                doc = SimpleDocument(
                     text=text,
                     metadata={
                         "filename": file_path.name,
@@ -144,26 +181,66 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
     
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
     
-    # 5. Configure chunking
-    print(f"\n Configuring text splitter:")
-    print(f"   Chunk size: {CHUNK_SIZE} tokens")
-    print(f"   Chunk overlap: {CHUNK_OVERLAP} tokens")
+    # 5. Configure chunking (REPLACED: LlamaIndex SentenceSplitter with pure Python)
+    print(f"\n Configuring text chunker:")
+    print(f"   Chunk size: {CHUNK_SIZE} characters")
+    print(f"   Chunk overlap: {CHUNK_OVERLAP} characters")
+    print(f"   Strategy: Sentence-aware splitting")
     
-    text_splitter = SentenceSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP
-    )
+    # OLD CODE (commented for reference):
+    # text_splitter = SentenceSplitter(
+    #     chunk_size=CHUNK_SIZE,
+    #     chunk_overlap=CHUNK_OVERLAP
+    # )
+    # index = VectorStoreIndex.from_documents(
+    #     documents,
+    #     storage_context=storage_context,
+    #     transformations=[text_splitter],
+    #     show_progress=True
+    # )
     
-    # 6. Create index
+    # NEW CODE: Manual chunking with pure Python for full transparency
+    # This gives us direct control over the chunking process and makes it
+    # easy to customize the chunking logic (e.g., preserve code blocks, etc.)
+    
+    # 6. Process documents: chunk text and create nodes manually
     print(f"\n  Processing documents...")
-    print(f"   - Splitting into chunks")
+    print(f"   - Splitting into chunks (custom implementation)")
     print(f"   - Generating embeddings")
     print(f"   - Storing in vector database")
     
-    index = VectorStoreIndex.from_documents(
-        documents,
+    # Import TextNode for creating index nodes
+    from llama_index.core.schema import TextNode
+    
+    all_nodes = []
+    for doc in documents:
+        # Chunk the document text using our custom chunker
+        chunks = chunk_text(
+            text=doc.text,
+            chunk_size=CHUNK_SIZE,
+            overlap=CHUNK_OVERLAP,
+            sentence_aware=True  # Use sentence-aware splitting for better semantic coherence
+        )
+        
+        # Create a TextNode for each chunk
+        # TextNode is a minimal LlamaIndex structure that we still need for the index
+        for i, chunk_content in enumerate(chunks):
+            node = TextNode(
+                text=chunk_content,
+                metadata={
+                    **doc.metadata,  # Include all document metadata
+                    'chunk_index': i,  # Track which chunk this is
+                    'total_chunks': len(chunks)  # Track total chunks for this document
+                }
+            )
+            all_nodes.append(node)
+    
+    print(f"   Created {len(all_nodes)} chunks from {len(documents)} documents")
+    
+    # Create index from pre-chunked nodes
+    index = VectorStoreIndex(
+        nodes=all_nodes,
         storage_context=storage_context,
-        transformations=[text_splitter],
         show_progress=True
     )
     

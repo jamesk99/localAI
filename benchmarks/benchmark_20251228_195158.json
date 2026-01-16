@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-12-28T19:42:55.055069",
+  "config": {
+    "llm_model": "llama3:latest",
+    "embed_model": "nomic-embed-text",
+    "ollama_url": "http://localhost:11434",
+    "use_rocm": false,
+    "use_npu": false,
+    "gpu_layers": 0,
+    "context_window": 8192
+  },
+  "tests": [
+    {
+      "test": "query_latency",
+      "num_queries": 5,
+      "avg_latency_sec": 65.38,
+      "avg_tokens": 325.2,
+      "avg_throughput_tokens_per_sec": 4.97,
+      "min_latency_sec": 53.82,
+      "max_latency_sec": 77.35
+    },
+    {
+      "test": "retrieval_quality",
+      "num_test_cases": 2,
+      "avg_quality_score": 0.548,
+      "min_score": 0.53,
+      "max_score": 0.566
+    },
+    {
+      "test": "context_window",
+      "context_window_size": 8192,
+      "latency_sec": 82.74,
+      "sources_retrieved": 5,
+      "success": true
+    }
+  ]
+}

@@ -11,8 +11,10 @@ from llama_index.llms.ollama import Ollama
 from llama_index.core import Settings as LlamaSettings, PromptTemplate
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.query_engine import RetrieverQueryEngine
-from llama_index.core.postprocessor import SimilarityPostprocessor
+# REPLACED: SimilarityPostprocessor with custom retriever that filters at retrieval time (from similarity_filter import filter_by_similarity)
+# from llama_index.core.postprocessor import SimilarityPostprocessor
 from llama_index.core import get_response_synthesizer
+from custom_retriever import create_filtered_retriever
 
 # Import config
 sys.path.append(os.path.dirname(__file__))
@@ -115,15 +117,44 @@ def create_query_engine(index):
     # For larger context windows, we can retrieve more chunks
     effective_top_k = min(TOP_K, MAX_CHUNKS_IN_CONTEXT)
     
-    retriever = VectorIndexRetriever(
+    # Create base retriever
+    base_retriever = VectorIndexRetriever(
         index=index,
         similarity_top_k=effective_top_k,
     )
     
-    # Add similarity threshold filter to remove irrelevant chunks
-    node_postprocessors = [
-        SimilarityPostprocessor(similarity_cutoff=SIMILARITY_THRESHOLD)
-    ]
+    # REPLACED: LlamaIndex SimilarityPostprocessor with custom pure Python filtering
+    # OLD CODE (commented for reference):
+    # node_postprocessors = [
+    #     SimilarityPostprocessor(similarity_cutoff=SIMILARITY_THRESHOLD)
+    # ]
+    
+    # NEW CODE: We'll apply filtering manually in a custom retriever wrapper
+    # This gives us full transparency over the filtering logic
+    # For now, we pass empty postprocessors and handle filtering in format_response
+    
+    # CRITICAL FOR RAG QUALITY: Apply similarity filtering at RETRIEVAL TIME
+    # This ensures the LLM only sees high-quality, relevant chunks
+    # 
+    # OLD APPROACH (WRONG - commented for reference):
+    # - Used node_postprocessors with SimilarityPostprocessor
+    # - OR filtered at display time in format_response
+    # - Problem: LLM already saw low-quality chunks when generating answer
+    # 
+    # NEW APPROACH (CORRECT):
+    # - Wrap retriever with custom FilteredRetriever
+    # - Filtering happens BEFORE chunks reach the LLM
+    # - LLM only sees chunks with score >= SIMILARITY_THRESHOLD
+    # - Improves answer quality by preventing irrelevant context pollution
+    
+    retriever = create_filtered_retriever(
+        base_retriever=base_retriever,
+        similarity_threshold=SIMILARITY_THRESHOLD,
+        verbose=True  # Show filtering stats for transparency
+    )
+    
+    # No postprocessors needed - filtering already done at retrieval time
+    node_postprocessors = []
     
     # Custom prompt template for better responses
     qa_prompt_template = (
@@ -189,8 +220,26 @@ def format_response(response) -> Dict:
     }
     
     # Extract source information
+    # Note: Filtering already happened at retrieval time via FilteredRetriever
+    # All chunks here have already passed the similarity threshold
+    # This ensures the LLM only saw high-quality context when generating the answer
     if hasattr(response, 'source_nodes'):
-        for idx, node in enumerate(response.source_nodes, 1):
+        source_nodes = response.source_nodes
+        
+        # CUSTOM FILTERING: Apply our pure Python similarity filter
+        # This replaces the LlamaIndex SimilarityPostprocessor
+        # if apply_similarity_filter:
+        #    original_count = len(source_nodes)
+        #    source_nodes = filter_by_similarity(source_nodes, SIMILARITY_THRESHOLD)
+        #    filtered_count = len(source_nodes)
+            
+            # Note: This filtering happens at display time rather than retrieval time
+            # Both approaches are valid - this gives us more flexibility to adjust
+            # the threshold without re-querying
+        #    if filtered_count < original_count:
+        #        print(f"   [Filter] Removed {original_count - filtered_count} chunks below similarity threshold {SIMILARITY_THRESHOLD}")
+        
+        for idx, node in enumerate(source_nodes, 1):
             # Show more context in preview (300 chars instead of 200)
             preview_text = node.node.text[:300]
             if len(node.node.text) > 300:
