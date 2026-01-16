@@ -1,0 +1,130 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Retrieval effectiveness test queries with relevance labels",
+    "created": "2025-01-08",
+    "note": "relevant_doc_ids and relevant_chunk_keywords should be updated based on actual corpus"
+  },
+  "retrieval_tests": [
+    {
+      "id": "ret_001",
+      "query": "What is backpropagation?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["gradient", "backward", "chain rule", "neural network", "error", "propagation"]
+    },
+    {
+      "id": "ret_002",
+      "query": "Explain how embeddings work.",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["embedding", "vector", "semantic", "representation", "dimension"]
+    },
+    {
+      "id": "ret_003",
+      "query": "What are the risks of AI systems?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["risk", "bias", "safety", "ethical", "harm", "concern"]
+    },
+    {
+      "id": "ret_004",
+      "query": "How does RAG reduce hallucinations?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["retrieval", "augmented", "generation", "hallucination", "context", "grounding"]
+    },
+    {
+      "id": "ret_005",
+      "query": "What is the transformer architecture?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["transformer", "attention", "self-attention", "encoder", "decoder"]
+    },
+    {
+      "id": "ret_006",
+      "query": "Describe gradient descent optimization.",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["gradient", "descent", "optimization", "loss", "learning rate", "minimize"]
+    },
+    {
+      "id": "ret_007",
+      "query": "What is tokenization?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["token", "tokenization", "subword", "vocabulary", "text"]
+    },
+    {
+      "id": "ret_008",
+      "query": "How do vector databases work?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["vector", "database", "similarity", "search", "index", "embedding"]
+    },
+    {
+      "id": "ret_009",
+      "query": "What is fine-tuning in machine learning?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["fine-tuning", "pretrained", "adapt", "training", "domain"]
+    },
+    {
+      "id": "ret_010",
+      "query": "Explain the attention mechanism.",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["attention", "query", "key", "value", "weight", "score"]
+    },
+    {
+      "id": "ret_011",
+      "query": "What is prompt engineering?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["prompt", "engineering", "few-shot", "instruction", "template"]
+    },
+    {
+      "id": "ret_012",
+      "query": "How does chunking affect retrieval?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["chunk", "size", "overlap", "context", "retrieval"]
+    },
+    {
+      "id": "ret_013",
+      "query": "What is semantic search?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["semantic", "search", "meaning", "similarity", "vector"]
+    },
+    {
+      "id": "ret_014",
+      "query": "Describe the LLM context window.",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["context", "window", "token", "limit", "input"]
+    },
+    {
+      "id": "ret_015",
+      "query": "What are large language models?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["large", "language", "model", "LLM", "transformer", "parameters"]
+    },
+    {
+      "id": "ret_016",
+      "query": "How is AI bias detected?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["bias", "fairness", "detection", "audit", "evaluation"]
+    },
+    {
+      "id": "ret_017",
+      "query": "What is cosine similarity?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["cosine", "similarity", "vector", "angle", "distance"]
+    },
+    {
+      "id": "ret_018",
+      "query": "Explain supervised learning.",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["supervised", "labeled", "training", "classification", "regression"]
+    },
+    {
+      "id": "ret_019",
+      "query": "What is a neural network layer?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["layer", "neural", "network", "hidden", "activation"]
+    },
+    {
+      "id": "ret_020",
+      "query": "How does temperature affect LLM output?",
+      "relevant_doc_ids": [],
+      "relevant_chunk_keywords": ["temperature", "sampling", "randomness", "probability", "creative"]
+    }
+  ]
+}

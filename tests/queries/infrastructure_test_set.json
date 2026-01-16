@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "version": "1.1",
+    "description": "Infrastructure test queries for Tier 1 benchmarking - diverse query set for statistical validity",
+    "created": "2025-01-09",
+    "query_types": ["factual", "summary", "multi_hop", "analytical"],
+    "min_recommended_queries": 12,
+    "notes": "At least 10-15 queries recommended for meaningful P95/P99 percentiles"
+  },
+  "infrastructure_tests": [
+    {
+      "id": "inf_001",
+      "query": "What is backpropagation and how does it work in neural networks?",
+      "type": "factual",
+      "expected_tokens": 150,
+      "complexity": "medium"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+
+    /*
+    {
+      "id": "inf_002",
+      "query": "Summarize the key concepts discussed in the documents.",
+      "type": "summary",
+      "expected_tokens": 200,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_003",
+      "query": "What is the relationship between gradient descent and loss functions in machine learning?",
+      "type": "multi_hop",
+      "expected_tokens": 180,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_004",
+      "query": "Define artificial intelligence and its main subfields.",
+      "type": "factual",
+      "expected_tokens": 120,
+      "complexity": "low"
+    },
+    {
+      "id": "inf_005",
+      "query": "Provide a comprehensive overview of the main topics covered in the ingested documents.",
+      "type": "summary",
+      "expected_tokens": 250,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_006",
+      "query": "What are the ethical considerations mentioned in relation to AI development?",
+      "type": "analytical",
+      "expected_tokens": 160,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_007",
+      "query": "Explain the concept of embeddings and their role in natural language processing.",
+      "type": "factual",
+      "expected_tokens": 140,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_008",
+      "query": "How do transformer models differ from recurrent neural networks?",
+      "type": "multi_hop",
+      "expected_tokens": 170,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_009",
+      "query": "What is retrieval-augmented generation and why is it useful?",
+      "type": "factual",
+      "expected_tokens": 130,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_010",
+      "query": "Analyze the main methodologies described in the documents and their applications.",
+      "type": "analytical",
+      "expected_tokens": 200,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_011",
+      "query": "What are large language models?",
+      "type": "factual",
+      "expected_tokens": 100,
+      "complexity": "low"
+    },
+    {
+      "id": "inf_012",
+      "query": "Summarize the risks and challenges associated with AI systems.",
+      "type": "summary",
+      "expected_tokens": 180,
+      "complexity": "medium"
+    }
+  ]
+}
+*/
+
+
+/*
+    {
+      "id": "inf_002",
+      "query": "Explain the concept of gradient descent optimization.",
+      "type": "factual",
+      "expected_tokens": 120,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_003",
+      "query": "What are transformers in machine learning?",
+      "type": "factual",
+      "expected_tokens": 130,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_004",
+      "query": "Summarize the key principles of responsible AI development.",
+      "type": "summary",
+      "expected_tokens": 200,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_005",
+      "query": "Provide an overview of the main AI risk categories discussed in the documents.",
+      "type": "summary",
+      "expected_tokens": 250,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_006",
+      "query": "Summarize the relationship between machine learning and artificial intelligence.",
+      "type": "summary",
+      "expected_tokens": 180,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_007",
+      "query": "How does the attention mechanism relate to transformer architectures and what impact does it have on model performance?",
+      "type": "multi_hop",
+      "expected_tokens": 220,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_008",
+      "query": "What are the connections between neural network depth, training difficulty, and the solutions proposed to address them?",
+      "type": "multi_hop",
+      "expected_tokens": 200,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_009",
+      "query": "How do embedding models work and how are they used in retrieval systems?",
+      "type": "multi_hop",
+      "expected_tokens": 180,
+      "complexity": "medium"
+    },
+    {
+      "id": "inf_010",
+      "query": "Analyze the trade-offs between model size and inference speed in production AI systems.",
+      "type": "analytical",
+      "expected_tokens": 250,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_011",
+      "query": "What are the implications of using local versus cloud-based AI models for data privacy?",
+      "type": "analytical",
+      "expected_tokens": 200,
+      "complexity": "high"
+    },
+    {
+      "id": "inf_012",
+      "query": "Compare and contrast supervised and unsupervised learning approaches.",
+      "type": "analytical",
+      "expected_tokens": 180,
+      "complexity": "medium"
+    }
+  ]
+}
+
+*/

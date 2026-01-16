@@ -1,0 +1,130 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "RAGAS quality evaluation test queries with ground truth answers",
+    "created": "2025-01-08",
+    "note": "Ground truth answers should be updated based on actual corpus content"
+  },
+  "ragas_tests": [
+    {
+      "id": "ragas_001",
+      "question": "What is backpropagation?",
+      "ground_truth": "Backpropagation is an algorithm for computing gradients in neural networks by propagating errors backward through layers using the chain rule of calculus.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_002",
+      "question": "What is the purpose of an embedding model in NLP?",
+      "ground_truth": "Embedding models convert text into dense numerical vectors that capture semantic meaning, enabling mathematical operations on text and similarity comparisons.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_003",
+      "question": "How does retrieval-augmented generation improve LLM responses?",
+      "ground_truth": "RAG improves LLM responses by retrieving relevant context from external knowledge bases before generation, reducing hallucinations and enabling access to current or domain-specific information.",
+      "type": "conceptual"
+    },
+    {
+      "id": "ragas_004",
+      "question": "What are the main components of a transformer architecture?",
+      "ground_truth": "The main components of a transformer are self-attention mechanisms, feed-forward neural networks, positional encodings, layer normalization, and residual connections.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_005",
+      "question": "What is gradient descent used for in machine learning?",
+      "ground_truth": "Gradient descent is an optimization algorithm used to minimize the loss function by iteratively adjusting model parameters in the direction of steepest descent.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_006",
+      "question": "What are the ethical concerns surrounding AI systems?",
+      "ground_truth": "Key ethical concerns include bias and fairness, privacy, transparency, accountability, job displacement, safety, and the potential for misuse of AI systems.",
+      "type": "analytical"
+    },
+    {
+      "id": "ragas_007",
+      "question": "What is the difference between supervised and unsupervised learning?",
+      "ground_truth": "Supervised learning uses labeled training data where inputs are paired with correct outputs, while unsupervised learning finds patterns in unlabeled data without predefined categories.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_008",
+      "question": "How do vector databases support semantic search?",
+      "ground_truth": "Vector databases store embeddings and enable efficient similarity search using algorithms like approximate nearest neighbors, allowing queries based on semantic meaning rather than exact keyword matches.",
+      "type": "conceptual"
+    },
+    {
+      "id": "ragas_009",
+      "question": "What is prompt engineering?",
+      "ground_truth": "Prompt engineering is the practice of designing and optimizing input prompts to elicit desired responses from large language models, including techniques like few-shot learning and chain-of-thought prompting.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_010",
+      "question": "What are hallucinations in the context of LLMs?",
+      "ground_truth": "Hallucinations are outputs where LLMs generate factually incorrect, fabricated, or nonsensical information that appears plausible but is not grounded in their training data or provided context.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_011",
+      "question": "What is fine-tuning and when is it used?",
+      "ground_truth": "Fine-tuning is the process of further training a pre-trained model on a specific dataset or task to adapt its capabilities to domain-specific requirements or improve performance.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_012",
+      "question": "How does chunking affect RAG system performance?",
+      "ground_truth": "Chunking strategy affects retrieval quality and context relevance. Smaller chunks provide precision but may lack context, while larger chunks provide more context but may include irrelevant information.",
+      "type": "conceptual"
+    },
+    {
+      "id": "ragas_013",
+      "question": "What is the attention mechanism in neural networks?",
+      "ground_truth": "The attention mechanism allows models to focus on relevant parts of the input when producing output, computing weighted combinations of values based on query-key similarity scores.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_014",
+      "question": "What are the benefits of using local LLMs compared to cloud-based APIs?",
+      "ground_truth": "Local LLMs provide data privacy, no usage costs, offline availability, customization options, and reduced latency, though they require more computational resources.",
+      "type": "analytical"
+    },
+    {
+      "id": "ragas_015",
+      "question": "What is tokenization in NLP?",
+      "ground_truth": "Tokenization is the process of breaking text into smaller units called tokens, which can be words, subwords, or characters, serving as the basic input units for language models.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_016",
+      "question": "How does temperature affect LLM output?",
+      "ground_truth": "Temperature controls output randomness. Lower temperatures produce more deterministic, focused responses, while higher temperatures increase creativity and diversity but may reduce coherence.",
+      "type": "conceptual"
+    },
+    {
+      "id": "ragas_017",
+      "question": "What is semantic similarity?",
+      "ground_truth": "Semantic similarity measures how alike two pieces of text are in meaning, typically computed using cosine similarity between their embedding vectors in a high-dimensional space.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_018",
+      "question": "What are the key components of a RAG pipeline?",
+      "ground_truth": "Key RAG components include document ingestion, text chunking, embedding generation, vector storage, retrieval mechanism, context assembly, and response generation with an LLM.",
+      "type": "factual"
+    },
+    {
+      "id": "ragas_019",
+      "question": "What is the role of context window in LLMs?",
+      "ground_truth": "The context window defines the maximum number of tokens an LLM can process at once, limiting both input length and the amount of retrieved context that can inform responses.",
+      "type": "conceptual"
+    },
+    {
+      "id": "ragas_020",
+      "question": "How can AI bias be mitigated?",
+      "ground_truth": "AI bias can be mitigated through diverse training data, bias audits, fairness constraints during training, regular testing across demographic groups, and transparent documentation of limitations.",
+      "type": "analytical"
+    }
+  ]
+}

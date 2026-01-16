@@ -74,16 +74,16 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 
 **Production-Ready Capabilities:**
 
-- ✅ Multi-user authentication (JSON file or environment-based)
-- ✅ Structured logging with rotation (5MB files, 10 backups)
-- ✅ Incremental document ingestion (hash-based deduplication)
-- ✅ Web UI with real-time query interface
-- ✅ Source attribution with similarity scores
-- ✅ Custom QA prompt templates
-- ✅ Similarity threshold filtering
-- ✅ LLM fallback on OOM errors
-- ✅ Database management CLI tools
-- ✅ Request tracking and performance metrics
+- Multi-user authentication (JSON file or environment-based)
+- Structured logging with rotation (5MB files, 10 backups)
+- Incremental document ingestion (hash-based deduplication)
+- Web UI with real-time query interface
+- Source attribution with similarity scores
+- Custom QA prompt templates
+- Similarity threshold filtering
+- LLM fallback on OOM errors
+- Database management CLI tools
+- Request tracking and performance metrics
 
 **Current Limitations:**
 
@@ -109,77 +109,77 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 
 **Hardware Utilization:**
 
-- ✅ Migrate to GMKtec EVO-X2 (64-128GB unified memory, Radeon 8060S iGPU, XDNA2 NPU)
-- 🎯 Enable ROCm acceleration for LLM inference (40-80+ tokens/sec target)
-- 🎯 Leverage NPU for embedding generation (XDNA2 ~50 TOPS)
-- 🎯 Utilize unified memory for large context windows (32K-128K tokens)
-- 🎯 Support 3-5 concurrent users without degradation
+- Migrate to GMKtec EVO-X2 (64-128GB unified memory, Radeon 8060S iGPU, XDNA2 NPU)
+- Enable ROCm acceleration for LLM inference (40-80+ tokens/sec target)
+- Leverage NPU for embedding generation (XDNA2 ~50 TOPS)
+- Utilize unified memory for large context windows (32K-128K tokens)
+- Support 3-5 concurrent users without degradation
 
 **Model Upgrades:**
 
-- 🎯 Deploy 70B-120B quantized models (e.g., Qwen2.5 72B Q4/Q5, Llama 3.1 70B)
-- 🎯 Evaluate frontier models for RAG faithfulness vs. speed tradeoffs
-- 🎯 Test specialized embedding models (e.g., bge-large, e5-mistral)
+- Deploy 70B-120B quantized models (e.g., Qwen2.5 72B Q4/Q5, Llama 3.1 70B)
+- Evaluate frontier models for RAG faithfulness vs. speed tradeoffs
+- Test specialized embedding models (e.g., bge-large, e5-mistral)
 
 **Data Scale:**
 
-- 🎯 Scale from ~10-50GB to 100-500GB+ document corpus
-- 🎯 Optimize ChromaDB for large-scale retrieval
-- 🎯 Implement batch embedding generation for faster ingestion
+- Scale from ~10-50GB to 100-500GB+ document corpus
+- Optimize ChromaDB for large-scale retrieval
+- Implement batch embedding generation for faster ingestion
 
 ### Advanced RAG Techniques
 
 **Retrieval Improvements:**
 
-- 🎯 **Hybrid search**: Combine dense (vector) + sparse (BM25/keyword) retrieval
-- 🎯 **Reranking**: Add cross-encoder reranker (e.g., bge-reranker) after initial retrieval
-- 🎯 **Multi-query retrieval**: Generate multiple query variations for better recall
-- 🎯 **Hypothetical document embeddings (HyDE)**: Generate hypothetical answers, embed them, retrieve
-- 🎯 **Parent-document retrieval**: Retrieve small chunks, return larger parent context
-- 🎯 **Query routing**: Route queries to specialized indices or models based on intent
+- **Hybrid search**: Combine dense (vector) + sparse (BM25/keyword) retrieval
+- **Reranking**: Add cross-encoder reranker (e.g., bge-reranker) after initial retrieval
+- **Multi-query retrieval**: Generate multiple query variations for better recall
+- **Hypothetical document embeddings (HyDE)**: Generate hypothetical answers, embed them, retrieve
+- **Parent-document retrieval**: Retrieve small chunks, return larger parent context
+- **Query routing**: Route queries to specialized indices or models based on intent
 
 **Chunking Strategy:**
 
-- 🎯 Implement semantic chunking (split on topic boundaries, not fixed tokens)
-- 🎯 Add hierarchical chunking (summaries + detailed chunks)
-- 🎯 Experiment with sliding window vs. sentence-aware splitting
+- Implement semantic chunking (split on topic boundaries, not fixed tokens)
+- Add hierarchical chunking (summaries + detailed chunks)
+- Experiment with sliding window vs. sentence-aware splitting
 
 **Context Enhancement:**
 
-- 🎯 Add metadata filtering (date, document type, source)
-- 🎯 Implement citation tracking and provenance
-- 🎯 Add multi-hop reasoning for complex queries
+- Add metadata filtering (date, document type, source)
+- Implement citation tracking and provenance
+- Add multi-hop reasoning for complex queries
 
 ### Production Features
 
 **Performance:**
 
-- 🎯 Async ingestion pipeline (background workers)
-- 🎯 Query result caching (Redis or in-memory)
-- 🎯 Concurrent query processing
-- 🎯 Streaming responses for better UX
+- Async ingestion pipeline (background workers)
+- Query result caching (Redis or in-memory)
+- Concurrent query processing
+- Streaming responses for better UX
 
 **Monitoring & Evaluation:**
 
-- 🎯 RAG evaluation metrics (faithfulness, relevance, answer quality)
-- 🎯 Performance dashboard (latency, throughput, cache hit rate)
-- 🎯 Query analytics (popular queries, failure modes)
-- 🎯 Cost tracking (tokens used, compute time)
+- RAG evaluation metrics (faithfulness, relevance, answer quality)
+- Performance dashboard (latency, throughput, cache hit rate)
+- Query analytics (popular queries, failure modes)
+- Cost tracking (tokens used, compute time)
 
 **UI/UX Improvements:**
 
-- 🎯 Modern React-based UI (replace basic HTML)
-- 🎯 Conversation history and context management
-- 🎯 Document upload via web interface
-- 🎯 Real-time ingestion status
-- 🎯 Source document viewer with highlighting
+- Modern React-based UI (replace basic HTML)
+- Conversation history and context management
+- Document upload via web interface
+- Real-time ingestion status
+- Source document viewer with highlighting
 
 **Security & Multi-tenancy:**
 
-- 🎯 Role-based access control (RBAC)
-- 🎯 Per-user document collections
-- 🎯 API rate limiting
-- 🎯 Audit logging
+- Role-based access control (RBAC)
+- Per-user document collections
+- API rate limiting
+- Audit logging
 
 ### Technical Implementation Priorities
 
@@ -218,8 +218,8 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 
 ### Principles
 
-- ✅ Keep everything 100% local, open-source, and private
-- ✅ No external API dependencies or cloud services
-- ✅ Optimize specifically for AMD hardware (ROCm, NPU, unified memory)
-- ✅ Maintain low operational cost
-- ✅ Prioritize RAG quality and faithfulness over speed
+- Keep everything 100% local, open-source, and private
+- No external API dependencies or cloud services
+- Optimize specifically for AMD hardware (ROCm, NPU, unified memory)
+- Maintain low operational cost
+- Prioritize RAG quality and faithfulness over speed
