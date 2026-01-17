@@ -1,0 +1,19 @@
+System Elements:
+
+    - Document Loader
+        - Document loaders for various file formats.
+        - Each loader extracts text content from a specific file type.
+    
+    - Document Tracker
+        - Tracks which documents have been ingested to avoid duplicates.
+        - Uses a database to store document metadata.
+        - src/document_tracker.py
+    
+    - Ingest
+        - Ingests documents into the system.
+        - src/ingest.py
+
+    - DB Manager
+        - This is the database management utility for tracking our database.
+        - Provides commands to view, verify, and manage our document tracking database.
+        - src/db_manager.py

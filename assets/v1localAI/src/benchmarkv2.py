@@ -38,12 +38,11 @@ from config import (
     CHUNK_SIZE, CHUNK_OVERLAP, SIMILARITY_THRESHOLD
 )
 from query import initialize_rag_system, create_query_engine, format_response
-from custom_retriever import create_filtered_retriever
 
 # Import LlamaIndex components for detailed timing
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.query_engine import RetrieverQueryEngine
-# from llama_index.core.postprocessor import SimilarityPostprocessor
+from llama_index.core.postprocessor import SimilarityPostprocessor
 from llama_index.core import get_response_synthesizer, PromptTemplate
 
 
@@ -164,32 +163,16 @@ class BenchmarkV2:
             self.index = initialize_rag_system()
             self.query_engine = create_query_engine(self.index)
             
-            # Create retriever matching production config (old way)
-            # self.retriever = VectorIndexRetriever(
-
-            # CRITICAL: Use SAME custom retriever as production (query.py)
-            # This ensures benchmarks test the ACTUAL production pipeline
-            base_retriever = VectorIndexRetriever(
+            # Create retriever matching production config
+            self.retriever = VectorIndexRetriever(
                 index=self.index,
                 similarity_top_k=TOP_K,
             )
             
-            # Create node postprocessors matching production(old way)
-            # self.node_postprocessors = [
-            #     SimilarityPostprocessor(similarity_cutoff=SIMILARITY_THRESHOLD)
-            # ]
-            
-            # Wrap with custom FilteredRetriever (filters at retrieval time, not postprocessing)
-            # This matches production query.py line 150-154
-            self.retriever = create_filtered_retriever(
-                base_retriever=base_retriever,
-                similarity_threshold=SIMILARITY_THRESHOLD,
-                verbose=False  # Disable verbose in benchmarks for cleaner output
-            )
-            
-            # No postprocessors - filtering already done at retrieval time by FilteredRetriever
-            # This is the key difference from standard LlamaIndex approach
-            self.node_postprocessors = []
+            # Create node postprocessors matching production
+            self.node_postprocessors = [
+                SimilarityPostprocessor(similarity_cutoff=SIMILARITY_THRESHOLD)
+            ]
             
             # Create response synthesizer with SAME prompt as production (from query.py)
             qa_prompt_template = (
@@ -270,18 +253,13 @@ class BenchmarkV2:
         query_bundle = QueryBundle(query_str=query_text, embedding=query_embedding)
         
         retrieval_start = time.time()
-        # OLD: Use _retrieve which accepts QueryBundle with pre-computed embedding
-        # IMPORTANT: FilteredRetriever._retrieve() applies similarity filtering DURING retrieval
-        # This means the returned nodes are already filtered - no postprocessing needed
-        # Timing here captures: vector search + similarity filtering (combined)
+        # Use _retrieve which accepts QueryBundle with pre-computed embedding
         nodes = self.retriever._retrieve(query_bundle)
         retrieval_end = time.time()
         result["retrieval_sec"] = retrieval_end - retrieval_start
         result["nodes"] = nodes
         
-        # OLD Apply postprocessors (same as production?)
-        # Apply postprocessors (currently empty [] since FilteredRetriever handles filtering)
-        # Kept for extensibility if additional postprocessors are added in future
+        # Apply postprocessors (same as production)
         for postprocessor in self.node_postprocessors:
             nodes = postprocessor.postprocess_nodes(nodes, query_str=query_text)
         

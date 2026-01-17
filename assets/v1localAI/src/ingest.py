@@ -247,8 +247,7 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
     # After successful indexing, mark documents as ingested
     print("\n Updating tracking database...")
     
-    # Get actual chunk counts from ChromaDB to verify what was stored (instead of from the nodes which was the old way "nodes-index.docstore.docs")
-    # Query all chunks from ChromaDB, then look up counts for NEW documents only (in the loop below)
+    # Get actual chunk counts from ChromaDB instead of from the nodes (old = "nodes = index.docstore.docs")
     doc_chunk_counts = {}
     try:
         # Query ChromaDB for all items and count by source file

@@ -43,7 +43,7 @@ SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.3"))  # Minimu
 # Advanced RAG settings (for large context models)
 MAX_CHUNKS_IN_CONTEXT = int(os.getenv("MAX_CHUNKS_IN_CONTEXT", "10"))  # Max chunks to include in prompt
 USE_RERANKING = os.getenv("USE_RERANKING", "false").lower() == "true"
-RERANK_TOP_N = int(os.getenv("RERANK_TOP_N", "3"))  # Re-rank top N results
+RERRANK_TOP_N = int(os.getenv("RERANK_TOP_N", "3"))  # Re-rank top N results
 
 # Paths
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
