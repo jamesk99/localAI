@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 from typing import List, Set
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import chromadb
 from chromadb.config import Settings
 from llama_index.core import VectorStoreIndex, StorageContext
@@ -20,8 +21,11 @@ from text_chunker import chunk_text, get_chunk_stats
 sys.path.append(os.path.dirname(__file__))
 from config import (
     RAW_DOCS_DIR, VECTOR_DB_DIR, COLLECTION_NAME,
-    CHUNK_SIZE, CHUNK_OVERLAP, EMBED_MODEL, OLLAMA_BASE_URL, TRACKING_DB_PATH
+    CHUNK_SIZE, CHUNK_OVERLAP, EMBED_MODEL, OLLAMA_BASE_URL, TRACKING_DB_PATH,
+    NUM_WORKERS, EMBED_BATCH_SIZE, CHROMA_BATCH_SIZE
 )
+
+# added (NUM_WORKERS, EMBED_BATCH_SIZE, CHROMA_BATCH_SIZE) above (added in from the original for version) - reference note
 
 # Custom document structure to replace LlamaIndex Document abstraction
 # This gives us full transparency and control over document representation
@@ -162,12 +166,14 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
         print("\n No new documents to ingest. Database is up to date.")
         return
     
-    # 2. Configure embedding model
+    # 2. Configure embedding model [with batch processing for 128GB RAM machine - will need to comment out second print if not on heavy machine]
     print(f"\n Configuring embedding model: {EMBED_MODEL}")
+    print(f"   Batch size: {EMBED_BATCH_SIZE} (optimized for 128GB RAM)")
     try:
         embed_model = OllamaEmbedding(
             model_name=EMBED_MODEL,
-            base_url=OLLAMA_BASE_URL
+            base_url=OLLAMA_BASE_URL,
+            embed_batch_size=EMBED_BATCH_SIZE,  # Process 64 texts per batch - comment this out if not on heavy machine!!
         )
         LlamaSettings.embed_model = embed_model
     except Exception as e:

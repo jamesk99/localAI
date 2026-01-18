@@ -1,0 +1,47 @@
+# Optimized Modelfile for Qwen2.5 72B on AMD Ryzen AI Max+ 395 (128GB RAM)
+# 
+# This Modelfile creates a custom model variant optimized for the EVO-X2 hardware:
+# - 16 Zen 5 cores (32 threads)
+# - RDNA 3.5 iGPU (40 CUs, unified memory access)
+# - 128GB unified RAM
+#
+# Usage:
+#   ollama create qwen72b-rag -f Modelfile.qwen72b-optimized
+#   Then update .env: LLM_MODEL=qwen72b-rag
+
+FROM qwen2.5:72b-instruct-q4_K_M
+
+# Threading: Match Zen 5 core count for optimal CPU utilization
+PARAMETER num_thread 16
+
+# Context Window: 32K tokens (balance between capability and speed)
+# The 72B model supports up to 128K, but 32K is faster for RAG
+PARAMETER num_ctx 32768
+
+# Batch Processing: Larger batches leverage unified memory bandwidth
+PARAMETER num_batch 512
+
+# GPU Layers: Offload ALL layers to iGPU (unified memory advantage)
+# With 128GB RAM, the entire 72B Q4 model (~42GB) fits easily
+PARAMETER num_gpu 999
+
+# Temperature: Low for factual RAG responses
+PARAMETER temperature 0.1
+
+# Top-P: Slightly constrained for focused outputs
+PARAMETER top_p 0.9
+
+# Top-K: Standard value
+PARAMETER top_k 40
+
+# Repeat Penalty: Prevent repetitive outputs
+PARAMETER repeat_penalty 1.1
+
+# Mirostat: Disabled for consistent RAG outputs
+PARAMETER mirostat 0
+
+# System Prompt: Optimized for RAG use case
+SYSTEM """You are a knowledgeable AI assistant that answers questions based on provided context documents. 
+You provide accurate, well-structured responses that directly address the user's questions.
+When information is not available in the context, you clearly state this limitation.
+You cite specific details from the context when relevant."""

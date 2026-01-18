@@ -23,18 +23,21 @@ from config import (
     LLM_MODEL, LLM_FALLBACK, EMBED_MODEL, OLLAMA_BASE_URL,
     SIMILARITY_THRESHOLD, LLM_TEMPERATURE, LLM_CONTEXT_WINDOW,
     LLM_REQUEST_TIMEOUT, LLM_NUM_PREDICT, GPU_LAYERS, NUM_GPU,
-    MAX_CHUNKS_IN_CONTEXT
+    MAX_CHUNKS_IN_CONTEXT, OLLAMA_NUM_THREAD, OLLAMA_NUM_BATCH,
+    EMBED_BATCH_SIZE
 )
 
+# added (OLLAMA_NUM_THREAD, OLLAMA_NUM_BATCH, EMBED_BATCH_SIZE) above (added in from the original for version) - reference note
 
 def initialize_rag_system():
     """Initialize the RAG system with vector store and LLM."""
     print("Initializing RAG system...")
     
-    # 1. Configure embedding model
+    # 1. Configure embedding model (with batch processing - for heavy machine, comment out embed_batch_size if not on heavy machine)!
     embed_model = OllamaEmbedding(
         model_name=EMBED_MODEL,
-        base_url=OLLAMA_BASE_URL
+        base_url=OLLAMA_BASE_URL,
+        embed_batch_size=EMBED_BATCH_SIZE,  # Process 64 texts per batch (128GB RAM)
     )
     
     # 2. Configure LLM with fallback
@@ -50,6 +53,9 @@ def initialize_rag_system():
             additional_kwargs={
                 "num_predict": LLM_NUM_PREDICT,
                 "num_gpu": NUM_GPU,
+                "num_thread": OLLAMA_NUM_THREAD,  # 16 threads for Zen 5 cores (comment out if not on heavy machine)
+                "num_batch": OLLAMA_NUM_BATCH,    # 512 batch for prompt processing (comment out if not on heavy machine)
+                "num_ctx": LLM_CONTEXT_WINDOW,    # Explicit context size (comment out if not on heavy machine)
             }
         )
         print(f"   Using {LLM_MODEL}")
@@ -66,6 +72,9 @@ def initialize_rag_system():
                 additional_kwargs={
                     "num_predict": LLM_NUM_PREDICT,
                     "num_gpu": NUM_GPU,
+                    "num_thread": OLLAMA_NUM_THREAD,  # 16 threads for Zen 5 cores (comment out if not on heavy machine)
+                    "num_batch": OLLAMA_NUM_BATCH,    # 512 batch for prompt processing (comment out if not on heavy machine)
+                    "num_ctx": LLM_CONTEXT_WINDOW,    # Explicit context size (comment out if not on heavy machine)
                 }
             )
             print(f"   Using fallback {LLM_FALLBACK}")
