@@ -25,7 +25,7 @@ This project is a local and secure AI platform that is powered by a RAG (Retriev
 
 This hardware can comfortably run 70B–120B+ quantized models at high speed, support 32K–128K context windows, handle hundreds of GB of ingested documents, and perform fast embedding generation and retrieval.
 
-## Current MVP (V1) Architecture
+## Architecture
 
 ### Technology Stack
 
@@ -50,7 +50,7 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 - Top-K retrieval: 5 chunks
 - Similarity threshold: 0.3
 
-### MVP Components
+### Components
 
 **Core Modules:**
 
@@ -70,7 +70,34 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 - Data: `.csv`, `.json`, `.xlsx`, `.xls`
 - Web: `.html`, `.htm`
 
-### MVP Features
+## Software Environment
+
+**Base:**
+
+- Windows 11
+- Python 3.13
+- Ollama (local inference server)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Features
 
 **Production-Ready Capabilities:**
 
@@ -95,13 +122,7 @@ This hardware can comfortably run 70B–120B+ quantized models at high speed, su
 - Limited to CPU/basic GPU (no ROCm optimization yet)
 - No multi-hop reasoning or agent capabilities
 
-## Software Environment
 
-**Base:**
-
-- Windows 11
-- Python 3.13.1
-- Ollama (local inference server)
 
 ## V2 Upgrade Path
 
