@@ -171,11 +171,11 @@ def create_query_engine(index):
         try:
             from llama_index.core.postprocessor import SentenceTransformerRerank
             reranker = SentenceTransformerRerank(
-                model="cross-encoder/ms-marco-MiniLM-L-2-v2",  # Fast, accurate reranker
+                model="BAAI/bge-reranker-v2-m3",  # Could also use "BAAI/bge-reranker-base" or "BAAI/bge-reranker-large" as it Matches bge-m3 family Matches bge-m3 embedding model family for better semantic alignment. however the one now is specifically designed for bge-m3 - but is the best quality/bigger version. switched from the original of "cross-encoder/ms-marco-MiniLM-L-2-v2",  which was Fast, accurate reranker but not as good as bge-reranker-v2-m3 nor optimal for our use case
                 top_n=RERANK_TOP_N
             )
             node_postprocessors.append(reranker)
-            print(f"   Reranking enabled: top {RERANK_TOP_N} results")
+            print(f"   Reranking enabled: top {RERANK_TOP_N} results (using BGE reranker to reorder results by relevance for final ranking via cross encoder scoring performed by the BGE reranker)")
         except ImportError:
             print("   Warning: SentenceTransformerRerank not available, skipping reranking")
             print("   Install with: pip install sentence-transformers")

@@ -10,9 +10,11 @@ llama-index-vector-stores-chroma>=0.1.0
 # Vector database
 chromadb>=0.4.0
 
+# Web framework
+Flask>=3.0.0
+
 # PDF processing
 PyPDF2>=3.0.0
-Flask>=3.0.0
 
 # Additional document format support
 python-docx>=1.0.0        # For .docx files
@@ -20,6 +22,168 @@ pandas>=2.0.0             # For .csv and .xlsx files
 openpyxl>=3.1.0           # For .xlsx files (Excel)
 beautifulsoup4>=4.12.0    # For .html files
 lxml>=4.9.0               # Parser for beautifulsoup4
+
+# Reranking and semantic similarity (used in query.py for SentenceTransformerRerank)
+sentence-transformers>=2.2.0
+
+# System monitoring (used in benchmarkv2.py for performance metrics)
+psutil>=5.9.0
+
+
+# ============================================================================
+# OLLAMA MODELS SETUP (PowerShell Commands)
+# ============================================================================
+# This RAG AI platform requires Ollama to be installed and running with specific models.
+# Follow these steps to set up all required models:
+
+# 1. INSTALL OLLAMA (if not already installed)
+# Download from: https://ollama.ai
+# Or via PowerShell:
+#   winget install Ollama.Ollama
+
+# 2. START OLLAMA SERVICE
+# PowerShell command:
+#   ollama serve
+# Note: Keep this running in a separate terminal window
+
+# 3. PULL REQUIRED MODELS
+# The following models are used by this RAG system (configured in src/config.py):
+
+# --- EMBEDDING MODEL (required for document ingestion and query retrieval) ---
+# Model: bge-m3 (BAAI/bge-m3)
+# Purpose: Converts text to vector embeddings for semantic search
+# Size: ~2.2 GB
+# PowerShell command:
+#   ollama pull bge-m3
+
+# --- PRIMARY LLM (for answer generation) ---
+# Model: qwen3:30b (default in config.py)
+# Purpose: Main language model for generating answers from retrieved context
+# Size: ~17 GB (requires significant RAM - 128GB recommended)
+# Context window: 131K tokens (256K max)
+# PowerShell command:
+#   ollama pull qwen3:30b
+
+# --- FALLBACK LLM (optional but recommended) ---
+# Model: llama3:latest (default fallback in config.py)
+# Purpose: Backup model if primary LLM fails or runs out of memory
+# Size: ~4.7 GB (8B parameter version)
+# PowerShell command:
+#   ollama pull llama3:latest
+
+# 4. VERIFY MODELS ARE INSTALLED
+# PowerShell command:
+#   ollama list
+# Expected output should show: bge-m3, qwen3:30b, llama3:latest
+
+# --- RERANKER MODEL (automatically downloaded by sentence-transformers) ---
+# Model: BAAI/bge-reranker-v2-m3 (configured in src/query.py)
+# Purpose: Cross-encoder for reranking retrieved chunks by relevance
+# Size: ~560 MB
+# NOTE: This model is NOT pulled via Ollama!
+# It's automatically downloaded from HuggingFace when you first run the system
+# with USE_RERANKING=true in your .env file.
+# The model will be cached in: C:\Users\<username>\.cache\huggingface\hub\
+# 
+# To pre-download (optional):
+# PowerShell command:
+#   python -c "from sentence_transformers import CrossEncoder; CrossEncoder('BAAI/bge-reranker-v2-m3')"
+#
+# Alternative reranker models (modify src/query.py line 174):
+#   BAAI/bge-reranker-base        # ~280MB, faster, good quality
+#   BAAI/bge-reranker-large       # ~1.1GB, best quality, slower
+
+# 5. ALTERNATIVE MODELS (if you have less RAM or different requirements)
+# You can modify src/config.py or .env file to use different models:
+
+# Lighter LLM options (if you have less than 128GB RAM):
+#   ollama pull llama3.2:3b      # ~2GB, good for testing
+#   ollama pull qwen2.5:7b       # ~4.7GB, balanced performance
+#   ollama pull mistral:7b       # ~4.1GB, fast and efficient
+
+# Alternative embedding models:
+#   ollama pull nomic-embed-text # ~274MB, English-focused
+#   ollama pull mxbai-embed-large # ~669MB, high quality
+
+# ============================================================================
+# PYTHON PACKAGE INSTALLATION
+# ============================================================================
+# Install all Python dependencies:
+# PowerShell command:
+#   pip install -r requirements.txt
+
+# Or with virtual environment (recommended):
+#   python -m venv venv
+#   .\venv\Scripts\Activate.ps1
+#   pip install -r requirements.txt
+
+# ============================================================================
+# RUNNING THE RAG SYSTEM
+# ============================================================================
+# After installing packages and pulling Ollama models:
+
+# 1. Ensure Ollama is running:
+#   ollama serve
+
+# 2. Ingest documents (first time setup):
+#   python src/ingest.py
+# This will process all documents in data/raw/ and create the vector database
+
+# 3. Start the web application:
+#   python src/app.py
+# Default URL: http://localhost:8000
+# Default credentials: raguser / changeme (configure in .env)
+
+# 4. Or run interactive query mode:
+#   python src/query.py
+
+# 5. Run benchmarks (optional):
+#   python src/benchmark.py
+#   python src/benchmarkv2.py --tier1
+
+# ============================================================================
+# ENVIRONMENT CONFIGURATION
+# ============================================================================
+# Create a .env file in the project root to customize settings:
+# Example .env contents:
+#   LLM_MODEL=qwen3:30b
+#   LLM_FALLBACK=llama3:latest
+#   EMBED_MODEL=bge-m3
+#   OLLAMA_BASE_URL=http://localhost:11434
+#   USE_RERANKING=true
+#   RERANK_TOP_N=8
+#   TOP_K=25
+#   SIMILARITY_THRESHOLD=0.35
+#   CHUNK_SIZE=3072
+#   CHUNK_OVERLAP=384
+#   RAG_USER=your_username
+#   RAG_PASS=your_password
+
+# ============================================================================
+# TROUBLESHOOTING
+# ============================================================================
+# If you encounter issues:
+
+# 1. Check Ollama is running:
+#   curl http://localhost:11434/api/tags
+
+# 2. Verify models are loaded:
+#   ollama list
+
+# 3. Test a model directly:
+#   ollama run bge-m3
+#   ollama run qwen3:30b
+
+# 4. Check Python package installation:
+#   pip list | Select-String "llama-index"
+#   pip list | Select-String "sentence-transformers"
+
+# 5. View application logs:
+#   Check logs/rag_app.log for detailed error messages
+
+
+
+
 
 # Note: The old monolithic package was 'llama_index' (llama_index==0.14.7) but modern versions
 # split into separate packages matching the import structure:
