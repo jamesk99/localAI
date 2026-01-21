@@ -1,5 +1,11 @@
 # config.py
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file from project root
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(env_path)
 
 # HARDWARE CONFIGURATION
 # ============================================================================
@@ -30,9 +36,9 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 # LLM_MODEL = os.getenv("LLM_MODEL", "qwen2.5:32b-instruct")        # Primary LLM (requires more RAM) 
 # LLM_FALLBACK = os.getenv("LLM_FALLBACK", "llama3:latest")  # Fallback LLM 
 # EMBED_MODEL = os.getenv("EMBED_MODEL", "qwen3-embedding:8b")
-LLM_MODEL = os.getenv("LLM_MODEL", "qwen2.5:72b-instruct-q4_K_M")  # 72B model fits in 128GB
-LLM_FALLBACK = os.getenv("LLM_FALLBACK", "qwen2.5:32b-instruct-q4_K_M")  # 32B fallback
-EMBED_MODEL = os.getenv("EMBED_MODEL", "qwen3-embedding:8b")  # High-quality 8B embeddings
+LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:30b")
+LLM_FALLBACK = os.getenv("LLM_FALLBACK", "llama3:latest")
+EMBED_MODEL = os.getenv("EMBED_MODEL", "bge-m3")
 
 # Model-specific settings for large models (70B-120B)
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))

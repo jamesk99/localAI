@@ -1,3 +1,6 @@
+# Environment configuration
+python-dotenv>=1.0.0
+
 # Core llama-index packages (modern modular structure)
 llama-index-core>=0.10.0
 llama-index-embeddings-ollama>=0.1.0
