@@ -15,6 +15,9 @@ ENV/
 env/
 .env/
 .env
+.env.alt
+.env.alt2
+.env.alt3
 
 # Data files (persistent, not in version control)
 data/tracking.db
