@@ -24,7 +24,7 @@ from config import (
     SIMILARITY_THRESHOLD, LLM_TEMPERATURE, LLM_CONTEXT_WINDOW,
     LLM_REQUEST_TIMEOUT, LLM_NUM_PREDICT, GPU_LAYERS, NUM_GPU,
     MAX_CHUNKS_IN_CONTEXT, OLLAMA_NUM_THREAD, OLLAMA_NUM_BATCH,
-    EMBED_BATCH_SIZE
+    EMBED_BATCH_SIZE, USE_RERANKING, RERANK_TOP_N
 )
 
 # added (OLLAMA_NUM_THREAD, OLLAMA_NUM_BATCH, EMBED_BATCH_SIZE) above (added in from the original for version) - reference note
@@ -53,12 +53,13 @@ def initialize_rag_system():
             additional_kwargs={
                 "num_predict": LLM_NUM_PREDICT,
                 "num_gpu": NUM_GPU,
+                "num_gqa": GPU_LAYERS,  # GPU layers to offload (999 = all layers)
                 "num_thread": OLLAMA_NUM_THREAD,  # 16 threads for Zen 5 cores (comment out if not on heavy machine)
                 "num_batch": OLLAMA_NUM_BATCH,    # 512 batch for prompt processing (comment out if not on heavy machine)
                 "num_ctx": LLM_CONTEXT_WINDOW,    # Explicit context size (comment out if not on heavy machine)
             }
         )
-        print(f"   Using {LLM_MODEL}")
+        print(f"   Using {LLM_MODEL} (GPU layers: {GPU_LAYERS})")
     except Exception as e:
         print(f"   Primary LLM {LLM_MODEL} unavailable: {str(e)[:100]}")
         print(f"   Falling back to: {LLM_FALLBACK}")
@@ -72,12 +73,13 @@ def initialize_rag_system():
                 additional_kwargs={
                     "num_predict": LLM_NUM_PREDICT,
                     "num_gpu": NUM_GPU,
+                    "num_gqa": GPU_LAYERS,  # GPU layers to offload (999 = all layers)
                     "num_thread": OLLAMA_NUM_THREAD,  # 16 threads for Zen 5 cores (comment out if not on heavy machine)
                     "num_batch": OLLAMA_NUM_BATCH,    # 512 batch for prompt processing (comment out if not on heavy machine)
                     "num_ctx": LLM_CONTEXT_WINDOW,    # Explicit context size (comment out if not on heavy machine)
                 }
             )
-            print(f"   Using fallback {LLM_FALLBACK}")
+            print(f"   Using fallback {LLM_FALLBACK} (GPU layers: {GPU_LAYERS})")
         except Exception as e2:
             print(f"   Fallback also failed: {str(e2)[:100]}")
             print(f"   Please ensure Ollama is running and models are available")
@@ -162,23 +164,37 @@ def create_query_engine(index):
         verbose=True  # Show filtering stats for transparency
     )
     
-    # No postprocessors needed - filtering already done at retrieval time
+    # Configure postprocessors - reranking if enabled. however, filtering is already done at retrieval time so no postprocessors are needed and will fail gracefully as it will be skipped with a warning
     node_postprocessors = []
     
+    if USE_RERANKING:
+        try:
+            from llama_index.core.postprocessor import SentenceTransformerRerank
+            reranker = SentenceTransformerRerank(
+                model="cross-encoder/ms-marco-MiniLM-L-2-v2",  # Fast, accurate reranker
+                top_n=RERANK_TOP_N
+            )
+            node_postprocessors.append(reranker)
+            print(f"   Reranking enabled: top {RERANK_TOP_N} results")
+        except ImportError:
+            print("   Warning: SentenceTransformerRerank not available, skipping reranking")
+            print("   Install with: pip install sentence-transformers")
+    
     # Custom prompt template for better responses
+    # UPDATED: Allows general knowledge fallback while clearly distinguishing source
     qa_prompt_template = (
-        "You are an AI assistant answering questions based on provided context documents.\n"
-        "Context information is below.\n"
+        "You are a knowledgeable AI assistant. Your primary role is to answer questions using the provided context documents when relevant.\n\n"
+        "Context information from indexed documents:\n"
         "---------------------\n"
         "{context_str}\n"
-        "---------------------\n"
-        "Given the context information above, answer the following question in a clear, comprehensive, and well-structured manner.\n"
-        "If the context doesn't contain enough information to fully answer the question, say so explicitly.\n"
-        "Provide specific details and examples from the context when possible.\n"
-        "Format your response with:\n"
-        "1. A direct answer to the question\n"
-        "2. Supporting details from the context\n"
-        "3. Any relevant implications or considerations\n\n"
+        "---------------------\n\n"
+        "Instructions:\n"
+        "1. If the context contains relevant information to answer the question, use it and cite the source.\n"
+        "2. If the context is empty, irrelevant, or insufficient, you MAY answer from your general knowledge.\n"
+        "3. When answering from general knowledge (not from documents), clearly prefix your response with: '[General Knowledge]'\n"
+        "4. When answering from the documents, prefix with: '[From Documents]'\n"
+        "5. Be helpful and informative - do NOT refuse to answer just because documents lack the information.\n"
+        "6. Never fabricate document content or claim something is in the documents when it isn't.\n\n"
         "Question: {query_str}\n"
         "Answer: "
     )
@@ -208,18 +224,71 @@ def create_query_engine(index):
         node_postprocessors=node_postprocessors,
     )
     
+    # Store references for fallback queries and direct synthesis
+    query_engine._llm = LlamaSettings.llm
+    query_engine._retriever = retriever
+    query_engine._response_synthesizer = response_synthesizer
+    
     return query_engine
+
+
+def query_with_fallback(query_engine, question: str):
+    """
+    Query with fallback to general knowledge when no relevant documents found.
+    
+    This fixes the LlamaIndex "Empty Response" issue where the response synthesizer
+    short-circuits when retriever returns no nodes, never calling the LLM at all.
+    
+    Pipeline verification:
+    - Retriever queries ChromaDB via: FilteredRetriever → VectorIndexRetriever → ChromaVectorStore → ChromaDB
+    - Same VECTOR_DB_DIR and COLLECTION_NAME used by ingest.py
+    - Same EMBED_MODEL (bge-m3) for query embedding as used during ingestion
+    """
+    # First, retrieve nodes from ChromaDB (via FilteredRetriever chain)
+    nodes = query_engine._retriever.retrieve(question)
+    
+    if not nodes:
+        # No relevant documents found in ChromaDB after similarity filtering
+        # Call LLM directly for general knowledge answer
+        llm = query_engine._llm
+        prompt = (
+            f"The user asked: {question}\n\n"
+            "I searched the indexed documents but found no relevant information for this question. "
+            "Please provide a helpful answer based on your general knowledge. "
+            "Be informative and accurate. Start your response with '[General Knowledge]' "
+            "to indicate this answer is not from the indexed documents.\n\n"
+            "Answer:"
+        )
+        response_text = llm.complete(prompt).text
+        
+        # Create a mock response object for format_response compatibility
+        class MockResponse:
+            def __init__(self, text):
+                self._text = text
+                self.source_nodes = []
+            def __str__(self):
+                return self._text
+        
+        return MockResponse(response_text)
+    else:
+        # Documents found in ChromaDB - synthesize response using retrieved nodes
+        # Use response synthesizer directly with already-retrieved nodes to avoid double retrieval
+        response = query_engine._response_synthesizer.synthesize(question, nodes)
+        # Attach source_nodes for format_response compatibility
+        response.source_nodes = nodes
+        return response
 
 
 def format_response(response) -> Dict:
     """Format the response with retrieved context."""
     raw_answer = str(response)
+    # OLD: Hard-coded refusal message caused "learned helplessness"
+    # if not raw_answer or raw_answer.strip().lower() == "empty response":
+    #     answer = "I could not find enough relevant information..."
+    # NEW: Let the LLM handle empty context gracefully via the prompt template
+    # The prompt now instructs LLM to use general knowledge when docs are insufficient
     if not raw_answer or raw_answer.strip().lower() == "empty response":
-        answer = (
-            "I could not find enough relevant information in the indexed documents "
-            "to answer that question. Try rephrasing or asking something more "
-            "directly related to the ingested documents."
-        )
+        answer = "[General Knowledge] I don't have any indexed documents to reference for this query, but I can help based on my general knowledge. Please re-ask your question and I'll do my best to assist."
     else:
         answer = raw_answer
 

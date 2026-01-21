@@ -12,7 +12,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.append(CURRENT_DIR)
 
-from query import initialize_rag_system, create_query_engine, format_response
+from query import initialize_rag_system, create_query_engine, format_response, query_with_fallback
 
 app = Flask(__name__)
 
@@ -190,7 +190,8 @@ def api_query():
             preview,
         )
 
-        response = query_engine.query(question)
+        # Use query_with_fallback to handle empty retrieval with general knowledge
+        response = query_with_fallback(query_engine, question)
         result = format_response(response)
         duration_ms = int((time.time() - start_time) * 1000)
         sources = result.get("sources") or []

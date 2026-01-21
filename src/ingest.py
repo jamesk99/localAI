@@ -48,8 +48,40 @@ class SimpleDocument:
     text: str
     metadata: Dict[str, Any]
 
+def _load_single_document(file_path: Path, tracker: DocumentTracker) -> tuple:
+    """
+    Load a single document. Helper for parallel processing.
+    Returns: (SimpleDocument or None, status: 'loaded'|'skipped'|'empty'|'error')
+    """
+    # CHECK IF ALREADY INGESTED
+    if tracker.is_document_ingested(file_path):
+        return None, 'already_ingested', file_path.name
+    
+    try:
+        text = load_document(file_path)
+        
+        if text is None:
+            return None, 'load_failed', file_path.name
+        
+        if text.strip():
+            doc = SimpleDocument(
+                text=text,
+                metadata={
+                    "filename": file_path.name,
+                    "file_type": file_path.suffix,
+                    "file_path": str(file_path)
+                }
+            )
+            return doc, 'loaded', file_path.name
+        else:
+            return None, 'empty', file_path.name
+            
+    except Exception as e:
+        return None, 'error', f"{file_path.name}: {e}"
+
+
 def load_documents() -> List[SimpleDocument]:
-    """Load documents from the raw data directory, skipping already ingested ones."""
+    """Load documents from the raw data directory using parallel processing. skipping already ingested documents. and falling back to sequential processing if parallel fails. """
     documents = []
     tracker = DocumentTracker(TRACKING_DB_PATH)
     
@@ -69,60 +101,63 @@ def load_documents() -> List[SimpleDocument]:
         return documents
     
     print(f" Found {len(files)} files")
+    print(f" Using {NUM_WORKERS} parallel workers for loading")
 
     # Track Stats
     skipped_count = 0
     loaded_count = 0
+    error_count = 0
 
-    for file_path in files:
-        # CHECK IF ALREADY INGESTED
-        if tracker.is_document_ingested(file_path):
-            print(f"     Skipping (already ingested): {file_path.name}")
-            skipped_count += 1
-            continue
-        
-        try:
-            print(f"    Loading: {file_path.name}")
+    # Try parallel processing first, fall back to sequential if it fails
+    try:
+        # Use ThreadPoolExecutor for parallel document loading (NUM_WORKERS from .env)
+        with ThreadPoolExecutor(max_workers=NUM_WORKERS) as executor:
+            futures = {executor.submit(_load_single_document, f, tracker): f for f in files}
             
-            # Use the new loader system
-            text = load_document(file_path)
-            
-            if text is None:
-                print(f"     Skipped (could not load): {file_path.name}")
-                continue
-            
-            if text.strip():
-                # REPLACED: LlamaIndex Document with SimpleDocument dataclass
-                # OLD CODE (commented for reference):
-                # doc = Document(
-                #     text=text,
-                #     metadata={
-                #         "filename": file_path.name,
-                #         "file_type": file_path.suffix,
-                #         "file_path": str(file_path)
-                #     }
-                # )
+            for future in as_completed(futures):
+                doc, status, info = future.result()
                 
-                # NEW CODE: Pure Python dataclass - same functionality, more transparent
-                doc = SimpleDocument(
-                    text=text,
-                    metadata={
-                        "filename": file_path.name,
-                        "file_type": file_path.suffix,
-                        "file_path": str(file_path)
-                    }
-                )
+                if status == 'loaded':
+                    documents.append(doc)
+                    loaded_count += 1
+                    print(f"    ✓ Loaded: {info}")
+                elif status == 'already_ingested':
+                    skipped_count += 1
+                elif status == 'empty':
+                    print(f"     Skipped (empty): {info}")
+                elif status == 'load_failed':
+                    print(f"     Skipped (could not load): {info}")
+                elif status == 'error':
+                    error_count += 1
+                    print(f"    ✗ Error: {info}")
+    except Exception as parallel_error:
+        print(f"   Warning: Parallel processing failed ({parallel_error})")
+        print(f"   Falling back to sequential processing...")
+        
+        # Fall back to sequential processing (original method)
+        for file_path in files:
+            doc, status, info = _load_single_document(file_path, tracker)
+            
+            if status == 'loaded':
                 documents.append(doc)
                 loaded_count += 1
-            else:
-                print(f"     Skipped (empty): {file_path.name}")
-                
-        except Exception as e:
-            print(f"    Error loading {file_path.name}: {e}")
+                print(f"    Loading: {info}")
+            elif status == 'already_ingested':
+                print(f"     Skipping (already ingested): {info}")
+                skipped_count += 1
+            elif status == 'empty':
+                print(f"     Skipped (empty): {info}")
+            elif status == 'load_failed':
+                print(f"     Skipped (could not load): {info}")
+            elif status == 'error':
+                error_count += 1
+                print(f"    Error: {info}")
     
     print(f"\n Summary:")
     print(f"   New documents: {loaded_count}")
     print(f"   Already ingested: {skipped_count}")
+    if error_count > 0:
+        print(f"   Errors: {error_count}")
     
     return documents
 
@@ -243,12 +278,47 @@ def ingest_documents():  # MODIFIED: Removed reset parameter
     
     print(f"   Created {len(all_nodes)} chunks from {len(documents)} documents")
     
-    # Create index from pre-chunked nodes
-    index = VectorStoreIndex(
-        nodes=all_nodes,
-        storage_context=storage_context,
-        show_progress=True
-    )
+    # Create index from pre-chunked nodes with batch processing
+    # CHROMA_BATCH_SIZE controls how many nodes are inserted at once
+    # Falls back to standard insert if batching fails
+    print(f"   Using batch size: {CHROMA_BATCH_SIZE} for vector store inserts")
+    
+    try:
+        if len(all_nodes) <= CHROMA_BATCH_SIZE:
+            # Small enough to insert all at once
+            index = VectorStoreIndex(
+                nodes=all_nodes,
+                storage_context=storage_context,
+                show_progress=True
+            )
+        else:
+            # Batch insert for large document sets
+            print(f"   Processing in {(len(all_nodes) + CHROMA_BATCH_SIZE - 1) // CHROMA_BATCH_SIZE} batches...")
+            index = None
+            for i in range(0, len(all_nodes), CHROMA_BATCH_SIZE):
+                batch = all_nodes[i:i + CHROMA_BATCH_SIZE]
+                batch_num = (i // CHROMA_BATCH_SIZE) + 1
+                print(f"   Batch {batch_num}: inserting {len(batch)} nodes...")
+                
+                if index is None:
+                    # First batch - create the index
+                    index = VectorStoreIndex(
+                        nodes=batch,
+                        storage_context=storage_context,
+                        show_progress=True
+                    )
+                else:
+                    # Subsequent batches - insert into existing index
+                    index.insert_nodes(batch)
+    except Exception as batch_error:
+        print(f"   Warning: Batch insert failed ({batch_error})")
+        print(f"   Falling back to standard insert (all nodes at once)...")
+        # Fall back to original method - insert all at once
+        index = VectorStoreIndex(
+            nodes=all_nodes,
+            storage_context=storage_context,
+            show_progress=True
+        )
     
     # After successful indexing, mark documents as ingested
     print("\n Updating tracking database...")
