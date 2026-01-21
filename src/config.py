@@ -46,16 +46,19 @@ LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 # LLM_CONTEXT_WINDOW = int(os.getenv("LLM_CONTEXT_WINDOW", "8192"))    # Default 8K, can go up to 128K
 # LLM_REQUEST_TIMEOUT = float(os.getenv("LLM_REQUEST_TIMEOUT", "180.0"))
 # LLM_NUM_PREDICT = int(os.getenv("LLM_NUM_PREDICT", "512"))           # Max tokens to generate
-LLM_CONTEXT_WINDOW = int(os.getenv("LLM_CONTEXT_WINDOW", "32768"))  # 32K context for 72B model
+# OLD: LLM_CONTEXT_WINDOW default was 32768
+LLM_CONTEXT_WINDOW = int(os.getenv("LLM_CONTEXT_WINDOW", "131072"))  # 131K for qwen3:30b (256K max)
 LLM_REQUEST_TIMEOUT = float(os.getenv("LLM_REQUEST_TIMEOUT", "300.0"))  # 5min for large models
-LLM_NUM_PREDICT = int(os.getenv("LLM_NUM_PREDICT", "2048"))  # Longer responses allowed
+# OLD: LLM_NUM_PREDICT default was 2048
+LLM_NUM_PREDICT = int(os.getenv("LLM_NUM_PREDICT", "4096"))  # Longer responses with 131K context
 
 # Ollama performance tuning (passed via additional_kwargs)
 # OLD VALUES (for lighter machines - these settings did not exist before):
 # OLLAMA_NUM_THREAD = 8
 # OLLAMA_NUM_BATCH = 256
 OLLAMA_NUM_THREAD = int(os.getenv("OLLAMA_NUM_THREAD", "16"))  # Match Zen 5 core count
-OLLAMA_NUM_BATCH = int(os.getenv("OLLAMA_NUM_BATCH", "512"))  # Batch size for prompt processing
+# OLD: OLLAMA_NUM_BATCH default was 512
+OLLAMA_NUM_BATCH = int(os.getenv("OLLAMA_NUM_BATCH", "1024"))  # Larger batch for 128GB RAM
 OLLAMA_MAIN_GPU = int(os.getenv("OLLAMA_MAIN_GPU", "0"))  # Primary GPU index
 
 # RAG Configuration
@@ -79,9 +82,12 @@ OLLAMA_MAIN_GPU = int(os.getenv("OLLAMA_MAIN_GPU", "0"))  # Primary GPU index
 # CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "128"))   # Increased overlap for continuity
 # TOP_K = int(os.getenv("TOP_K", "5"))    # Number of chunks to retrieve
 # SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.3"))    # Minimum similarity score
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "2048"))  # Larger chunks for 32K context
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "256"))  # More overlap for continuity
-TOP_K = int(os.getenv("TOP_K", "15"))  # More candidates with abundant RAM
+# OLD: CHUNK_SIZE default was 2048
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "3072"))  # Larger chunks for 131K context
+# OLD: CHUNK_OVERLAP default was 256
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "384"))  # More overlap for continuity
+# OLD: TOP_K default was 15
+TOP_K = int(os.getenv("TOP_K", "25"))  # More candidates with 131K context window
 SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.35"))  # Slightly higher threshold
 
 # Advanced RAG settings (for large context models)
@@ -89,7 +95,8 @@ SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.35"))  # Sligh
 # MAX_CHUNKS_IN_CONTEXT = int(os.getenv("MAX_CHUNKS_IN_CONTEXT", "10"))   # Max chunks to include in prompt
 # USE_RERANKING = os.getenv("USE_RERANKING", "false").lower() == "true"
 # RERANK_TOP_N = int(os.getenv("RERANK_TOP_N", "3"))   # Re-rank top N results
-MAX_CHUNKS_IN_CONTEXT = int(os.getenv("MAX_CHUNKS_IN_CONTEXT", "20"))  # More context in 32K window
+# OLD: MAX_CHUNKS_IN_CONTEXT default was 20
+MAX_CHUNKS_IN_CONTEXT = int(os.getenv("MAX_CHUNKS_IN_CONTEXT", "40"))  # More context in 131K window
 USE_RERANKING = os.getenv("USE_RERANKING", "true").lower() == "true"  # Enable reranking
 RERANK_TOP_N = int(os.getenv("RERANK_TOP_N", "8"))  # Re-rank top 8 of 15 retrieved
 

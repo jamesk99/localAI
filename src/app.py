@@ -158,6 +158,11 @@ def serve_index():
     return send_from_directory(CURRENT_DIR, "index.html")
 
 
+@app.route("/styles.css", methods=["GET"])
+def serve_styles():
+    return send_from_directory(CURRENT_DIR, "styles.css")
+
+
 @app.route("/api/query", methods=["POST"])
 @requires_auth
 def api_query():
