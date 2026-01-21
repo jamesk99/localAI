@@ -307,18 +307,18 @@ def format_response(response) -> Dict:
         answer = "I don't have any indexed documents to reference for this query, but I can help based on my general knowledge. Please re-ask your question and I'll do my best to assist."
     else:
         answer = raw_answer
-    
+
     # PROFESSIONAL QUALITY: Strip prompt artifacts from response
     # Remove common prefix markers that shouldn't be visible to users
-    import re
-    artifacts_to_remove = [
-        r'^\[General Knowledge\]\s*',
-        r'^\[From Documents\]\s*',
-        r'^\[Background\]\s*',
-        r'^\[Context\]\s*',
-        r'^Answer:\s*',
-        r'^Response:\s*',
-    ]
+    # import re
+    # artifacts_to_remove = [
+    #     r'^\[General Knowledge\]\s*',
+    #     r'^\[From Documents\]\s*',
+    #     r'^\[Background\]\s*',
+    #     r'^\[Context\]\s*',
+    #     r'^Answer:\s*',
+    #     r'^Response:\s*',
+    # ]
     
     for pattern in artifacts_to_remove:
         answer = re.sub(pattern, '', answer, flags=re.IGNORECASE)
@@ -326,6 +326,7 @@ def format_response(response) -> Dict:
     # Clean up any remaining bracketed prefixes at the start
     answer = re.sub(r'^\[[^\]]+\]\s*', '', answer)
     answer = answer.strip()
+
 
     result = {
         "answer": answer,
