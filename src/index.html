@@ -176,22 +176,7 @@
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            
-            // Preserve formatting: convert newlines to <br> and format paragraphs
-            if (type === 'assistant') {
-                // Split by paragraphs (double newlines) and format
-                const paragraphs = content.split(/\n\n+/);
-                contentDiv.innerHTML = paragraphs.map(para => {
-                    // Convert single newlines to <br> within paragraphs
-                    const formatted = para.trim().replace(/\n/g, '<br>');
-                    return `<p style="margin: 0 0 0.8em 0; line-height: 1.6;">${formatted}</p>`;
-                }).join('');
-                // Remove margin from last paragraph
-                const lastP = contentDiv.querySelector('p:last-child');
-                if (lastP) lastP.style.marginBottom = '0';
-            } else {
-                contentDiv.textContent = content;
-            }
+            contentDiv.textContent = content;
             
             messageDiv.appendChild(label);
             messageDiv.appendChild(contentDiv);
