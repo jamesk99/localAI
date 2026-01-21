@@ -181,24 +181,32 @@ def create_query_engine(index):
             print("   Install with: pip install sentence-transformers")
     
     # Custom prompt template for better responses
-    # UPDATED: Allows general knowledge fallback while clearly distinguishing source
+    # UPDATED: Natural responses without exposing internal prompt mechanics - also allows general knowledge fallback when context is insufficient
     qa_prompt_template = (
-        "You are a knowledgeable AI assistant. Your primary role is to answer questions using the provided context documents when relevant.\n\n"
+        "You are a knowledgeable AI assistant. Answer the user's question based on the provided context documents when available.\n\n"
         "Context information from indexed documents:\n"
         "---------------------\n"
         "{context_str}\n"
         "---------------------\n\n"
         "Instructions:\n"
-        "1. If the context contains relevant information to answer the question, use it and cite the source.\n"
-        "2. If the context is empty, irrelevant, or insufficient, you MAY answer from your general knowledge.\n"
-        "3. When answering from general knowledge (not from documents), clearly prefix your response with: '[General Knowledge]'\n"
-        "4. When answering from the documents, prefix with: '[From Documents]'\n"
-        "5. Be helpful and informative - do NOT refuse to answer just because documents lack the information.\n"
-        "6. Never fabricate document content or claim something is in the documents when it isn't.\n\n"
+        "1. If the context contains relevant information, use it to answer the question comprehensively.\n"
+        "2. If the context is empty or insufficient, provide a helpful answer based on your general knowledge.\n"
+        "3. Be direct, clear, and professional in your responses.\n"
+        "4. Never fabricate information or claim something is in the documents when it isn't.\n"
+        "5. Provide accurate, well-structured answers that directly address the user's question.\n\n"
         "Question: {query_str}\n"
-        "Answer: "
+        "Answer:"
     )
     
+    # OLD Instructions:
+    #        "1. If the context contains relevant information to answer the question, use it and cite the source.\n"
+    #        "2. If the context is empty, irrelevant, or insufficient, you MAY answer from your general knowledge.\n"
+    #        "3. When answering from general knowledge (not from documents), clearly prefix your response with: '[General Knowledge]'\n"
+    #        "4. When answering from the documents, prefix with: '[From Documents]'\n"
+    #        "5. Be helpful and informative - do NOT refuse to answer just because documents lack the information.\n"
+    #        "6. Never fabricate document content or claim something is in the documents when it isn't.\n\n"
+
+
     qa_prompt = PromptTemplate(qa_prompt_template)
     
     # OLD METHOD (commented out - less reliable):
@@ -252,14 +260,19 @@ def query_with_fallback(query_engine, question: str):
         # Call LLM directly for general knowledge answer
         llm = query_engine._llm
         prompt = (
-            f"The user asked: {question}\n\n"
-            "I searched the indexed documents but found no relevant information for this question. "
-            "Please provide a helpful answer based on your general knowledge. "
-            "Be informative and accurate. Start your response with '[General Knowledge]' "
-            "to indicate this answer is not from the indexed documents.\n\n"
+            f"Question: {question}\n\n"
+            "Please provide a helpful, accurate, and well-structured answer to this question. "
+            "Be informative, clear, and professional in your response.\n\n"
             "Answer:"
         )
         response_text = llm.complete(prompt).text
+
+        # OLD prompt (above - now commented out below for reference):
+        #            f"The user asked: {question}\n\n"
+        #            "I searched the indexed documents but found no relevant information for this question. "
+        #            "Please provide a helpful answer based on your general knowledge. "
+        #            "Be informative and accurate. Start your response with '[General Knowledge]' "
+        #            "to indicate this answer is not from the indexed documents.\n\n"
         
         # Create a mock response object for format_response compatibility
         class MockResponse:
@@ -287,10 +300,32 @@ def format_response(response) -> Dict:
     #     answer = "I could not find enough relevant information..."
     # NEW: Let the LLM handle empty context gracefully via the prompt template
     # The prompt now instructs LLM to use general knowledge when docs are insufficient
+    
+    # Handle empty responses
+    # OLD: answer = "[General Knowledge] I don't have any indexed documents to reference for this query, but I can help based on my general knowledge. Please re-ask your question and I'll do my best to assist." 
     if not raw_answer or raw_answer.strip().lower() == "empty response":
-        answer = "[General Knowledge] I don't have any indexed documents to reference for this query, but I can help based on my general knowledge. Please re-ask your question and I'll do my best to assist."
+        answer = "I don't have any indexed documents to reference for this query, but I can help based on my general knowledge. Please re-ask your question and I'll do my best to assist."
     else:
         answer = raw_answer
+    
+    # PROFESSIONAL QUALITY: Strip prompt artifacts from response
+    # Remove common prefix markers that shouldn't be visible to users
+    import re
+    artifacts_to_remove = [
+        r'^\[General Knowledge\]\s*',
+        r'^\[From Documents\]\s*',
+        r'^\[Background\]\s*',
+        r'^\[Context\]\s*',
+        r'^Answer:\s*',
+        r'^Response:\s*',
+    ]
+    
+    for pattern in artifacts_to_remove:
+        answer = re.sub(pattern, '', answer, flags=re.IGNORECASE)
+    
+    # Clean up any remaining bracketed prefixes at the start
+    answer = re.sub(r'^\[[^\]]+\]\s*', '', answer)
+    answer = answer.strip()
 
     result = {
         "answer": answer,

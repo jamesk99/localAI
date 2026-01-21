@@ -1,0 +1,90 @@
+# ============================================================================
+# HARDWARE CONFIGURATION (AMD Ryzen AI Max+ 395 / 128GB RAM)
+# ============================================================================
+USE_ROCM=true
+USE_NPU=false
+GPU_LAYERS=999
+NUM_GPU=1
+
+# Parallel Processing (16 Zen 5 cores)
+# OLD: NUM_WORKERS=12
+NUM_WORKERS=8
+# Increased from 8 to 12 to better utilize 16 cores (leaving 4 for system/Ollama)
+# OLD: BATCH_SIZE=64
+BATCH_SIZE=32
+# Doubled for faster document processing with 128GB RAM
+# OLD: EMBED_BATCH_SIZE=128
+EMBED_BATCH_SIZE=64
+# Increased for faster embedding generation
+
+# Havent tested the old higher values yet, don't want to risk running out of memory or limiting the performance of ollama due to too many threads ??
+
+# ============================================================================
+# OLLAMA CONFIGURATION
+# ============================================================================
+OLLAMA_BASE_URL=http://localhost:11434
+
+# LLM Models - OPTIMIZED FOR 128GB RAM (no quantization needed)
+LLM_MODEL=qwen3:30b
+LLM_FALLBACK=llama3:latest
+EMBED_MODEL=bge-m3
+
+# Model Settings - OPTIMIZED FOR qwen3:30b (256K context, 19GB)
+LLM_TEMPERATURE=0.1
+LLM_CONTEXT_WINDOW=131072
+# 131K context (half of 256K max) - balances large context with inference speed
+# Full 256K available but 131K is practical sweet spot for RAG
+LLM_REQUEST_TIMEOUT=300.0
+LLM_NUM_PREDICT=4096
+
+# Ollama Performance Tuning - qwen3:30b on 128GB unified memory
+OLLAMA_NUM_THREAD=16
+# OLD: OLLAMA_NUM_BATCH=1024
+OLLAMA_NUM_BATCH=2048
+# Doubled batch size for faster prompt processing with 128GB RAM
+OLLAMA_MAIN_GPU=0
+
+# ============================================================================
+# RAG CONFIGURATION - OPTIMIZED FOR 131K CONTEXT WINDOW
+# ============================================================================
+# Chunking (larger chunks for better semantic coherence)
+CHUNK_SIZE=3072
+CHUNK_OVERLAP=384
+
+# Retrieval (more candidates with huge context window)
+TOP_K=15
+SIMILARITY_THRESHOLD=0.35
+MAX_CHUNKS_IN_CONTEXT=40
+# 40 chunks × 3072 chars ≈ 30K tokens - fits easily in 131K context
+# Old: TOP_K=25
+
+# Reranking
+USE_RERANKING=true
+RERANK_TOP_N=8
+
+# ChromaDB Optimization
+# OLD: CHROMA_BATCH_SIZE=5000
+CHROMA_BATCH_SIZE=10000
+# Doubled for faster bulk operations with 128GB RAM
+# OLD: CHROMA_PERSIST_INTERVAL=1000
+CHROMA_PERSIST_INTERVAL=2000
+# Less frequent persistence = faster operations (still safe with plenty of RAM)
+
+# ============================================================================
+# WEB APPLICATION
+# ============================================================================
+RAG_APP_HOST=0.0.0.0
+RAG_APP_PORT=8000
+FLASK_DEBUG=false
+
+# ============================================================================
+# AUTHENTICATION
+# ============================================================================
+REQUIRE_AUTH=false
+API_KEY=your-secret-key-here
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+LOG_LEVEL=INFO
+LOG_FILE=logs/rag.log

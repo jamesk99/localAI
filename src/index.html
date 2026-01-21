@@ -176,7 +176,22 @@
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.textContent = content;
+            
+            // Preserve formatting: convert newlines to <br> and format paragraphs
+            if (type === 'assistant') {
+                // Split by paragraphs (double newlines) and format
+                const paragraphs = content.split(/\n\n+/);
+                contentDiv.innerHTML = paragraphs.map(para => {
+                    // Convert single newlines to <br> within paragraphs
+                    const formatted = para.trim().replace(/\n/g, '<br>');
+                    return `<p style="margin: 0 0 0.8em 0; line-height: 1.6;">${formatted}</p>`;
+                }).join('');
+                // Remove margin from last paragraph
+                const lastP = contentDiv.querySelector('p:last-child');
+                if (lastP) lastP.style.marginBottom = '0';
+            } else {
+                contentDiv.textContent = content;
+            }
             
             messageDiv.appendChild(label);
             messageDiv.appendChild(contentDiv);
@@ -213,13 +228,18 @@
                     const score = typeof source.score === 'number' ? source.score.toFixed(3) : null;
                     const chunkId = source.chunk_id != null ? source.chunk_id : null;
 
+                    // Build elements in display order: filename → snippet → meta
                     const filenameEl = document.createElement('div');
                     filenameEl.className = 'source-filename';
                     filenameEl.textContent = filename;
+                    item.appendChild(filenameEl);
 
-                    const snippetEl = document.createElement('div');
-                    snippetEl.className = 'source-snippet';
-                    snippetEl.textContent = snippet;
+                    if (snippet) {
+                        const snippetEl = document.createElement('div');
+                        snippetEl.className = 'source-snippet';
+                        snippetEl.textContent = snippet;
+                        item.appendChild(snippetEl);
+                    }
 
                     const metaParts = [];
                     if (chunkId !== null) metaParts.push(`Chunk ${chunkId}`);
@@ -230,11 +250,6 @@
                         metaEl.className = 'source-meta';
                         metaEl.textContent = metaParts.join(' · ');
                         item.appendChild(metaEl);
-                    }
-
-                    item.appendChild(filenameEl);
-                    if (snippet) {
-                        item.appendChild(snippetEl);
                     }
 
                     sourcesList.appendChild(item);

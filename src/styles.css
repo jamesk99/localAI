@@ -206,9 +206,43 @@ body {
 .message-content {
     padding: 12px 16px;
     border-radius: 12px;
-    line-height: 1.5;
+    line-height: 1.6;
     font-size: 15px;
     transition: background 0.3s, color 0.3s;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Better formatting for assistant messages - comment this out to go back to default */
+.message.assistant .message-content {
+    white-space: normal;
+}
+
+.message.assistant .message-content p {
+    margin: 0 0 0.8em 0;
+    line-height: 1.6;
+}
+
+.message.assistant .message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.message.assistant .message-content ul,
+.message.assistant .message-content ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.message.assistant .message-content li {
+    margin: 0.3em 0;
+}
+
+.message.assistant .message-content code {
+    background: rgba(0, 122, 255, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
 }
 
 .sources-container {
@@ -257,26 +291,36 @@ body {
     display: none;
 }
 
+.source-item {
+    padding: 8px 0;
+}
+
 .source-item + .source-item {
-    margin-top: 6px;
-    padding-top: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid var(--border-color);
 }
 
 .source-filename {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
+    font-size: 12px;
+    margin-bottom: 4px;
 }
 
 .source-snippet {
     margin-top: 4px;
     white-space: normal;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    font-size: 11px;
 }
 
 .source-meta {
-    margin-top: 2px;
-    font-size: 12px;
+    margin-top: 4px;
+    font-size: 11px;
     color: var(--text-tertiary);
+    font-weight: 500;
 }
 
 .message.user .message-content {
