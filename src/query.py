@@ -320,12 +320,12 @@ def format_response(response) -> Dict:
     #     r'^Response:\s*',
     # ]
     
-    for pattern in artifacts_to_remove:
-        answer = re.sub(pattern, '', answer, flags=re.IGNORECASE)
+    # for pattern in artifacts_to_remove:
+    #    answer = re.sub(pattern, '', answer, flags=re.IGNORECASE)
     
     # Clean up any remaining bracketed prefixes at the start
-    answer = re.sub(r'^\[[^\]]+\]\s*', '', answer)
-    answer = answer.strip()
+    # answer = re.sub(r'^\[[^\]]+\]\s*', '', answer)
+    # answer = answer.strip()
 
 
     result = {
