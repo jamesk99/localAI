@@ -53,13 +53,16 @@ CHUNK_OVERLAP=384
 
 # Retrieval (more candidates with huge context window)
 TOP_K=15
-SIMILARITY_THRESHOLD=0.35
+SIMILARITY_THRESHOLD=0.20
+# lowered from 0.35 to 0.20 to get more results
 MAX_CHUNKS_IN_CONTEXT=40
 # 40 chunks × 3072 chars ≈ 30K tokens - fits easily in 131K context
 # Old: TOP_K=25
 
-# Reranking
-USE_RERANKING=true
+# Reranking - DISABLED for speed (BGE reranker adds significant latency)
+# OLD: USE_RERANKING=true
+USE_RERANKING=false
+# The 2.27GB reranker model is overkill - bge-m3 embeddings are already high quality
 RERANK_TOP_N=8
 
 # ChromaDB Optimization
