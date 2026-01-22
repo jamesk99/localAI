@@ -1,0 +1,91 @@
+# =============================================================================
+# PHASE0-RAG CONFIGURATION
+# =============================================================================
+# This file configures the RAG system to use either Ollama or LM Studio for LLM
+# inference while ALWAYS using Ollama for embeddings.
+#
+# WHY THE SPLIT?
+# LM Studio can only serve ONE type of model at a time (LLM OR embeddings).
+# Ollama can serve BOTH simultaneously. So we use:
+#   - Ollama (port 11434) → Embeddings (bge-m3)
+#   - LM Studio (port 1234) → LLM inference (optional, if you prefer its UI/features)
+
+# =============================================================================
+# BACKEND SELECTION
+# =============================================================================
+# Choose "ollama" or "lmstudio" for LLM inference
+# Embeddings ALWAYS use Ollama regardless of this setting
+LLM_BACKEND=lmstudio
+# ACTIVE MODEL: qwen/qwen3-30b-a3b-2507 via LM Studio
+
+# =============================================================================
+# OLLAMA CONFIGURATION (Port 11434)
+# =============================================================================
+# Ollama serves embeddings (always) and optionally LLM (when LLM_BACKEND=ollama)
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Embedding model (always via Ollama)
+EMBED_MODEL=bge-m3
+
+# Ollama LLM models (used when LLM_BACKEND=ollama) using qwen3:30b for now, maybe qwen3-arx in future
+OLLAMA_LLM_MODEL=qwen3:30b
+OLLAMA_LLM_FALLBACK=llama3:latest
+
+# Ollama performance tuning
+OLLAMA_NUM_THREAD=16
+OLLAMA_NUM_BATCH=1024
+
+# =============================================================================
+# LM STUDIO CONFIGURATION (Port 1234)
+# =============================================================================
+# LM Studio serves LLM only (when LLM_BACKEND=lmstudio)
+# 
+# SETUP STEPS:
+#   1. Open LM Studio
+#   2. Download model: Search for "qwen3-30b" in Discover tab
+#   3. Load model: Go to Chat/Developer tab and load the model
+#   4. Start server: Developer tab → Local Server → Start Server
+#   5. Verify: http://localhost:1234/v1/models should return loaded model
+#
+LMSTUDIO_BASE_URL=http://localhost:1234/v1
+
+# Model name as shown in LM Studio after loading
+# Common Qwen3-30B variants:
+#   - qwen3-30b-a3b-2507        (general purpose, 17GB min RAM)
+#   - qwen3-30b-a3b-thinking-2507  (reasoning/thinking mode)
+#   - qwen3-coder-30b           (coding specialized)
+LMSTUDIO_LLM_MODEL=qwen3-30b-a3b-2507
+
+# =============================================================================
+# SHARED LLM SETTINGS (applies to whichever backend is active)
+# =============================================================================
+LLM_TEMPERATURE=0.1
+LLM_CONTEXT_WINDOW=131072
+LLM_REQUEST_TIMEOUT=300.0
+LLM_NUM_PREDICT=4096
+
+# =============================================================================
+# HARDWARE CONFIGURATION
+# =============================================================================
+GPU_LAYERS=999
+NUM_GPU=1
+NUM_WORKERS=8
+BATCH_SIZE=32
+EMBED_BATCH_SIZE=64
+
+# =============================================================================
+# RAG CONFIGURATION - change rerank to true to use reranking
+# =============================================================================
+CHUNK_SIZE=3072
+CHUNK_OVERLAP=384
+TOP_K=10
+SIMILARITY_THRESHOLD=0.25
+MAX_CHUNKS_IN_CONTEXT=40
+USE_RERANKING=false
+RERANK_TOP_N=5
+
+# =============================================================================
+# CHROMADB
+# =============================================================================
+CHROMA_BATCH_SIZE=5000
+CHROMA_PERSIST_INTERVAL=1000
