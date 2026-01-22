@@ -22,7 +22,7 @@ EMBED_BATCH_SIZE = int(os.getenv("EMBED_BATCH_SIZE", "64"))  # Used in query.py 
 
 # OLLAMA CONFIGURATION
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:30b") # Primary LLM (requires more RAM) 
+LLM_MODEL = os.getenv("LLM_MODEL", "qwen3-arx") # Primary LLM (requires more RAM) - old was: LLM_MODEL=qwen3:30b 
 LLM_FALLBACK = os.getenv("LLM_FALLBACK", "llama3:latest") # Fallback LLM 
 EMBED_MODEL = os.getenv("EMBED_MODEL", "bge-m3") # Embedding model
 
@@ -36,6 +36,9 @@ LLM_NUM_PREDICT = int(os.getenv("LLM_NUM_PREDICT", "4096"))  # Max tokens to gen
 OLLAMA_NUM_THREAD = int(os.getenv("OLLAMA_NUM_THREAD", "16"))  # Match Zen 5 core count. old was 8. this is the number of threads to use for processing.
 OLLAMA_NUM_BATCH = int(os.getenv("OLLAMA_NUM_BATCH", "1024"))  # this is the number of batches to process in parallel. # Larger batch for 128GB RAM. old was 256. then it was 512.
 OLLAMA_MAIN_GPU = int(os.getenv("OLLAMA_MAIN_GPU", "0"))  # Reserved for multi-GPU setups. the gpu index to use. 
+OLLAMA_NUM_GPU = int(os.getenv("OLLAMA_NUM_GPU", "999"))  # Reserved for multi-GPU setups. the number of GPUs to use. 1 means single GPU.
+OLLAMA_GPU_LAYERS = int(os.getenv("OLLAMA_GPU_LAYERS", "999"))  # Reserved for multi-GPU setups. the number of layers to use for processing. 999 means all layers.
+
 
 # RAG Configuration
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "3072"))  # Larger chunks for 131K context, old default was 2048 for chunk_size. the number of tokens in each chunk. increasing it gives better context but also more chunks which affect performance.

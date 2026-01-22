@@ -6,6 +6,14 @@ USE_NPU=false
 GPU_LAYERS=999
 NUM_GPU=1
 
+# Hardware overrides for Windows + Ryzen AI Max
+HSA_OVERRIDE_GFX_VERSION=11.5.0
+OLLAMA_FLASH_ATTENTION=1
+OLLAMA_KEEP_ALIVE=24h
+
+# Ollama Vulkan - unsure if this is needed, fix the below commented out line if it turns out to be necessary.
+# OLLAMA_VULKAN=1
+
 # Parallel Processing (16 Zen 5 cores)
 # OLD: NUM_WORKERS=12
 NUM_WORKERS=8
@@ -24,10 +32,15 @@ EMBED_BATCH_SIZE=64
 # ============================================================================
 OLLAMA_BASE_URL=http://localhost:11434
 
-# LLM Models - OPTIMIZED FOR 128GB RAM (no quantization needed)
-LLM_MODEL=qwen3:30b
-LLM_FALLBACK=llama3:latest
+# LLM Models - OPTIMIZED FOR 128GB RAM (no quantization needed) - old was: LLM_MODEL=qwen3:30b
+# Model Names
+LLM_MODEL=qwen3-arx
 EMBED_MODEL=bge-m3
+LLM_FALLBACK=llama3:latest
+
+OLLAMA_NUM_GPU=999
+OLLAMA_GPU_LAYERS=999
+
 
 # Model Settings - OPTIMIZED FOR qwen3:30b (256K context, 19GB)
 LLM_TEMPERATURE=0.1
@@ -91,3 +104,15 @@ API_KEY=your-secret-key-here
 # ============================================================================
 LOG_LEVEL=INFO
 LOG_FILE=logs/rag.log
+
+# Create qwen3-arx model so that we can use it as a configuration blueprint used by Ollama to create a "Named Model." It is syntactically very similar to a Dockerfile. It allows you to take a base model (like Llama 3) and hard-code specific parameters, system instructions, and—crucially for your setup—VRAM hardware limits.
+# Since we are building it, we you want this model to be "locked" into your 128GB RAM pool and configured specifically for your project's technical requirements.
+``` powershell
+ollama create qwen3-arx -f qwen3-arx.Modelfile
+```
+# may need to run this as admin on powershell but with the new env HSA_OVERRIDE_GFX_VERSION that will work (11.5.0) since it w as already ran as is below:
+
+# code:
+
+# Run PowerShell as Administrator
+# [System.Environment]::SetEnvironmentVariable('HSA_OVERRIDE_GFX_VERSION', '11.0.0', 'Machine')
