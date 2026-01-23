@@ -60,6 +60,8 @@ OLLAMA_NUM_THREAD=16
 OLLAMA_NUM_BATCH=2048
 # Doubled batch size for faster prompt processing with 128GB RAM
 OLLAMA_MAIN_GPU=0
+OLLAMA_NUM_GPU=999
+OLLAMA_GPU_LAYERS=999
 
 # ============================================================================
 # RAG CONFIGURATION - OPTIMIZED FOR 131K CONTEXT WINDOW
@@ -103,8 +105,16 @@ FLASK_DEBUG=false
 REQUIRE_AUTH=false
 API_KEY=your-secret-key-here
 
+# Single-user authentication (when not using RAG_USER_FILE)
+RAG_USER=raguser
+RAG_PASS=changeme
+
+# Multi-user authentication file (optional - if set, overrides RAG_USER/RAG_PASS)
+# RAG_USER_FILE=auth_users.json
+
 # ============================================================================
 # LOGGING
 # ============================================================================
-LOG_LEVEL=INFO
-LOG_FILE=logs/rag.log
+RAG_LOG_LEVEL=INFO
+RAG_LOG_FILE=logs/rag_app.log
+RAG_LOG_QUESTIONS=true

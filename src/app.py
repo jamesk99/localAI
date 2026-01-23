@@ -12,7 +12,14 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.append(CURRENT_DIR)
 
-from query import initialize_rag_system, create_query_engine, format_response, query_with_fallback
+from query import (
+    initialize_rag_system, 
+    create_query_engine, 
+    create_streaming_query_engine,  # NEW: streaming version
+    format_response, 
+    query_with_fallback,
+    query_with_fallback_streaming  # NEW: streaming version
+)
 
 app = Flask(__name__)
 
@@ -136,12 +143,13 @@ def requires_auth(f):
 
 
 index = initialize_rag_system()
-query_engine = create_query_engine(index)
+query_engine = create_query_engine(index)  # Original non-streaming engine
+query_engine_streaming = create_streaming_query_engine(index)  # NEW: Streaming engine
 
 # Log RAG system startup info
 from config import LLM_MODEL, EMBED_MODEL, OLLAMA_BASE_URL
 logger.info(
-    "rag_system_initialized llm_model=%s embed_model=%s ollama_url=%s",
+    "rag_system_initialized llm_model=%s embed_model=%s ollama_url=%s streaming_enabled=True",
     LLM_MODEL,
     EMBED_MODEL,
     OLLAMA_BASE_URL,
@@ -208,6 +216,129 @@ def api_query():
         return jsonify(result)
     except Exception as exc:
         logger.exception("event=query_error request_id=%s", request_id)
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/query/stream", methods=["POST"])
+@requires_auth
+def api_query_stream():
+    """
+    NEW STREAMING ENDPOINT - Returns Server-Sent Events (SSE) stream.
+    This allows the frontend to display LLM responses as they're generated.
+    Falls back to /api/query if streaming fails.
+    """
+    from flask import stream_with_context
+    
+    start_time = time.time()
+    request_id = uuid.uuid4().hex
+    auth = request.authorization
+    username = auth.username if auth else "unknown"
+    client_ip = request.remote_addr or "unknown"
+
+    data = request.get_json(silent=True) or {}
+    question = data.get("question", "").strip()
+    if not question:
+        return jsonify({"error": "Missing 'question'"}), 400
+
+    try:
+        preview = question[:200]
+        if not LOG_QUESTIONS:
+            preview = ""
+        logger.info(
+            "event=query_stream_received request_id=%s user=%s ip=%s q_len=%s q_preview=%r",
+            request_id,
+            username,
+            client_ip,
+            len(question),
+            preview,
+        )
+
+        def generate_stream():
+            """Generator function that yields SSE-formatted events."""
+            accumulated_text = ""
+            source_nodes = []
+            token_count = 0
+            
+            try:
+                # Use streaming query engine with fallback
+                for text_chunk, nodes in query_with_fallback_streaming(query_engine_streaming, question):
+                    accumulated_text += text_chunk
+                    source_nodes = nodes  # Update source nodes (same for all chunks)
+                    token_count += 1
+                    
+                    # Yield SSE event with text chunk
+                    event_data = {
+                        "type": "token",
+                        "content": text_chunk,
+                        "request_id": request_id
+                    }
+                    yield f"data: {json.dumps(event_data)}\n\n"
+                
+                # After streaming completes, send sources and completion event
+                sources_list = []
+                for idx, node in enumerate(source_nodes, 1):
+                    preview_text = node.node.text[:300]
+                    if len(node.node.text) > 300:
+                        preview_text += "..."
+                    
+                    source_info = {
+                        "chunk_id": idx,
+                        "text": preview_text,
+                        "score": node.score,
+                        "metadata": node.node.metadata
+                    }
+                    sources_list.append(source_info)
+                
+                duration_ms = int((time.time() - start_time) * 1000)
+                
+                # Send sources event
+                if sources_list:
+                    sources_event = {
+                        "type": "sources",
+                        "sources": sources_list,
+                        "request_id": request_id
+                    }
+                    yield f"data: {json.dumps(sources_event)}\n\n"
+                
+                # Send completion event
+                completion_event = {
+                    "type": "done",
+                    "request_id": request_id,
+                    "token_count": token_count,
+                    "duration_ms": duration_ms
+                }
+                yield f"data: {json.dumps(completion_event)}\n\n"
+                
+                logger.info(
+                    "event=query_stream_success request_id=%s duration_ms=%d token_count=%d source_count=%d",
+                    request_id,
+                    duration_ms,
+                    token_count,
+                    len(sources_list),
+                )
+                
+            except Exception as exc:
+                logger.exception("event=query_stream_error request_id=%s", request_id)
+                error_event = {
+                    "type": "error",
+                    "error": str(exc),
+                    "request_id": request_id
+                }
+                yield f"data: {json.dumps(error_event)}\n\n"
+        
+        # Return SSE stream response
+        return Response(
+            stream_with_context(generate_stream()),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',  # Disable nginx buffering
+                'Connection': 'keep-alive'
+            }
+        )
+        
+    except Exception as exc:
+        logger.exception("event=query_stream_error request_id=%s", request_id)
         return jsonify({"error": str(exc)}), 500
 
 

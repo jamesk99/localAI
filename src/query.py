@@ -113,6 +113,7 @@ def initialize_rag_system():
     # =========================================================================
     # 1. Configure embedding model (ALWAYS Ollama)
     # =========================================================================
+    # NOTE: embed_batch_size for heavy machine (128GB RAM). Comment out if not on heavy machine. Processes 64 texts per batch (128GB RAM) currently.
     print(f"   Embeddings: Ollama @ {OLLAMA_BASE_URL}")
     embed_model = OllamaEmbedding(
         model_name=EMBED_MODEL,
@@ -192,6 +193,8 @@ def initialize_rag_system():
     print(f"   Embedding model: {EMBED_MODEL} (via Ollama)")
     print(f"   LLM: {LMSTUDIO_LLM_MODEL if LLM_BACKEND == 'lmstudio' else OLLAMA_LLM_MODEL} (via {LLM_BACKEND.upper()})")
     print(f"   Context window: {LLM_CONTEXT_WINDOW} tokens")
+    if LLM_BACKEND == "ollama":
+        print(f"   GPU layers: {GPU_LAYERS if GPU_LAYERS > 0 else 'auto'}")
     print(f"   Top-K retrieval: {TOP_K}")
     
     return index
@@ -271,6 +274,83 @@ def create_query_engine(index):
     return query_engine
 
 
+def create_streaming_query_engine(index):
+    """
+    Create a query engine with STREAMING enabled for real-time response.
+    This is a streaming-enabled version of create_query_engine().
+    """
+    # Configure retriever with dynamic top-k based on context window
+    effective_top_k = min(TOP_K, MAX_CHUNKS_IN_CONTEXT)
+    
+    # Create base retriever
+    base_retriever = VectorIndexRetriever(
+        index=index,
+        similarity_top_k=effective_top_k,
+    )
+    
+    # Wrap with custom FilteredRetriever for similarity filtering at retrieval time
+    retriever = create_filtered_retriever(
+        base_retriever=base_retriever,
+        similarity_threshold=SIMILARITY_THRESHOLD,
+        verbose=True
+    )
+    
+    # Configure postprocessors - reranking if enabled
+    node_postprocessors = []
+    
+    if USE_RERANKING:
+        try:
+            from llama_index.core.postprocessor import SentenceTransformerRerank
+            reranker = SentenceTransformerRerank(
+                model="BAAI/bge-reranker-v2-m3",
+                top_n=RERANK_TOP_N
+            )
+            node_postprocessors.append(reranker)
+            print(f"   Reranking enabled: top {RERANK_TOP_N} results")
+        except ImportError:
+            print("   Warning: SentenceTransformerRerank not available, skipping reranking")
+    
+    # Custom prompt template (same as non-streaming)
+    qa_prompt_template = (
+        "You are a knowledgeable AI assistant. Answer the user's question based on the provided context documents when available.\n\n"
+        "Context information from indexed documents:\n"
+        "---------------------\n"
+        "{context_str}\n"
+        "---------------------\n\n"
+        "Instructions:\n"
+        "1. If the context contains relevant information, use it to answer the question comprehensively.\n"
+        "2. If the context is empty or insufficient, provide a helpful answer based on your general knowledge.\n"
+        "3. Be direct, clear, and professional in your responses.\n"
+        "4. Never fabricate information or claim something is in the documents when it isn't.\n"
+        "5. Provide accurate, well-structured answers that directly address the user's question.\n\n"
+        "Question: {query_str}\n"
+        "Answer:"
+    )
+    
+    qa_prompt = PromptTemplate(qa_prompt_template)
+    
+    # Create response synthesizer with STREAMING ENABLED
+    response_synthesizer = get_response_synthesizer(
+        text_qa_template=qa_prompt,
+        response_mode="compact",
+        streaming=True  # <<< STREAMING ENABLED
+    )
+    
+    # Create query engine
+    query_engine = RetrieverQueryEngine(
+        retriever=retriever,
+        response_synthesizer=response_synthesizer,
+        node_postprocessors=node_postprocessors,
+    )
+    
+    # Store references for fallback queries
+    query_engine._llm = LlamaSettings.llm
+    query_engine._retriever = retriever
+    query_engine._response_synthesizer = response_synthesizer
+    
+    return query_engine
+
+
 def query_with_fallback(query_engine, question: str):
     """
     Query with fallback to general knowledge when no relevant documents found.
@@ -301,6 +381,37 @@ def query_with_fallback(query_engine, question: str):
         response = query_engine._response_synthesizer.synthesize(question, nodes)
         response.source_nodes = nodes
         return response
+
+
+def query_with_fallback_streaming(query_engine, question: str):
+    """
+    STREAMING version of query_with_fallback.
+    Yields text chunks and source nodes as they're generated.
+    Returns a generator that yields (text_chunk, source_nodes) tuples.
+    """
+    nodes = query_engine._retriever.retrieve(question)
+    
+    if not nodes:
+        # No relevant documents - call LLM directly with streaming
+        llm = query_engine._llm
+        prompt = (
+            f"Question: {question}\n\n"
+            "Please provide a helpful, accurate, and well-structured answer to this question. "
+            "Be informative, clear, and professional in your response.\n\n"
+            "Answer:"
+        )
+        # Use stream_complete for streaming
+        stream_response = llm.stream_complete(prompt)
+        for chunk in stream_response:
+            yield (chunk.delta, [])  # No source nodes for general knowledge
+    else:
+        # Documents found - synthesize response with streaming
+        # The response_synthesizer.synthesize returns StreamingResponse when streaming=True
+        streaming_response = query_engine._response_synthesizer.synthesize(question, nodes)
+        
+        # Stream the response text
+        for text_chunk in streaming_response.response_gen:
+            yield (text_chunk, nodes)  # Yield text chunks with source nodes
 
 
 def format_response(response) -> Dict:

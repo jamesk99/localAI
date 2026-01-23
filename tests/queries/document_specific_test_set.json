@@ -1,0 +1,199 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "description": "Document-specific test queries for benchmarking - MATCHES ACTUAL CORPUS",
+    "created": "2026-01-22",
+    "corpus_documents": [
+      "AI_RMF_Playbook-1.pdf",
+      "Agentic_AI_Autonomous_Intelligence.pdf",
+      "survey_agentic_rag.pdf",
+      "nist.ai.100-1.pdf",
+      "AI Glossary (Andreessen Horowitz).pdf",
+      "datacenter.pdf",
+      "aws.md",
+      "Generic PMPTemplate II.pdf",
+      "Technical Stack Requirements2.docx"
+    ],
+    "note": "These queries are SPECIFIC to documents in assets/documents/ and will test actual retrieval, not generic LLM knowledge"
+  },
+  "infrastructure_tests": [
+    {
+      "id": "doc_inf_001",
+      "query": "According to the NIST AI RMF Playbook, what are the seven core functions of the AI Risk Management Framework?",
+      "type": "factual",
+      "expected_source": "AI_RMF_Playbook-1.pdf",
+      "complexity": "medium"
+    },
+    {
+      "id": "doc_inf_002",
+      "query": "What specific agentic RAG architectures are discussed in the survey paper?",
+      "type": "factual",
+      "expected_source": "survey_agentic_rag.pdf",
+      "complexity": "high"
+    },
+    {
+      "id": "doc_inf_003",
+      "query": "What AWS services are mentioned in the technical documentation?",
+      "type": "factual",
+      "expected_source": "aws.md",
+      "complexity": "low"
+    },
+    {
+      "id": "doc_inf_004",
+      "query": "According to the Andreessen Horowitz AI glossary, what is their definition of foundation models?",
+      "type": "factual",
+      "expected_source": "AI Glossary.pdf",
+      "complexity": "low"
+    },
+    {
+      "id": "doc_inf_005",
+      "query": "What are the key phases in the PMP template project lifecycle?",
+      "type": "factual",
+      "expected_source": "Generic PMPTemplate II.pdf",
+      "complexity": "medium"
+    },
+    {
+      "id": "doc_inf_006",
+      "query": "Summarize the main trustworthiness characteristics from NIST's AI standards document.",
+      "type": "summary",
+      "expected_source": "nist.ai.100-1.pdf",
+      "complexity": "high"
+    },
+    {
+      "id": "doc_inf_007",
+      "query": "What infrastructure requirements are specified in the data center documentation?",
+      "type": "factual",
+      "expected_source": "datacenter.pdf",
+      "complexity": "medium"
+    },
+    {
+      "id": "doc_inf_008",
+      "query": "How does the agentic AI paper describe the relationship between planning and memory in autonomous agents?",
+      "type": "multi_hop",
+      "expected_source": "Agentic_AI_Autonomous_Intelligence.pdf",
+      "complexity": "high"
+    },
+    {
+      "id": "doc_inf_009",
+      "query": "Compare the governance frameworks mentioned in the NIST documents.",
+      "type": "analytical",
+      "expected_source": "nist.ai.100-1.pdf, AI_RMF_Playbook-1.pdf",
+      "complexity": "high"
+    },
+    {
+      "id": "doc_inf_010",
+      "query": "What technical stack components are required according to the requirements document?",
+      "type": "factual",
+      "expected_source": "Technical Stack Requirements2.docx",
+      "complexity": "low"
+    }
+  ],
+  "ragas_tests": [
+    {
+      "id": "doc_ragas_001",
+      "question": "What are the core functions of NIST's AI Risk Management Framework?",
+      "ground_truth": "The NIST AI RMF includes seven core functions: Govern, Map, Measure, Manage, and additional supporting functions for comprehensive AI risk management.",
+      "type": "factual",
+      "expected_source": "AI_RMF_Playbook-1.pdf"
+    },
+    {
+      "id": "doc_ragas_002",
+      "question": "According to the survey paper, what are the main components of agentic RAG systems?",
+      "ground_truth": "Agentic RAG systems typically include components for planning, tool use, memory management, reflection, and multi-agent collaboration to enhance retrieval-augmented generation.",
+      "type": "conceptual",
+      "expected_source": "survey_agentic_rag.pdf"
+    },
+    {
+      "id": "doc_ragas_003",
+      "question": "What AI trustworthiness characteristics does NIST emphasize?",
+      "ground_truth": "NIST emphasizes characteristics including accuracy, reliability, safety, security, resilience, accountability, transparency, explainability, privacy, and fairness.",
+      "type": "factual",
+      "expected_source": "nist.ai.100-1.pdf"
+    },
+    {
+      "id": "doc_ragas_004",
+      "question": "How does the Andreessen Horowitz glossary define generative AI?",
+      "ground_truth": "According to the A16Z glossary, generative AI refers to models that can create new content including text, images, code, and other media based on learned patterns from training data.",
+      "type": "factual",
+      "expected_source": "AI Glossary.pdf"
+    },
+    {
+      "id": "doc_ragas_005",
+      "question": "What are the phases in the project management template?",
+      "ground_truth": "The PMP template outlines phases including initiation, planning, execution, monitoring and controlling, and closure.",
+      "type": "factual",
+      "expected_source": "Generic PMPTemplate II.pdf"
+    },
+    {
+      "id": "doc_ragas_006",
+      "question": "According to the agentic AI paper, how do agents use memory for decision-making?",
+      "ground_truth": "Agentic systems use various memory types including short-term working memory, long-term knowledge storage, and episodic memory to inform planning and action selection.",
+      "type": "conceptual",
+      "expected_source": "Agentic_AI_Autonomous_Intelligence.pdf"
+    },
+    {
+      "id": "doc_ragas_007",
+      "question": "What infrastructure considerations are mentioned in the data center documentation?",
+      "ground_truth": "The data center documentation covers power requirements, cooling systems, network topology, physical security, and redundancy planning.",
+      "type": "factual",
+      "expected_source": "datacenter.pdf"
+    },
+    {
+      "id": "doc_ragas_008",
+      "question": "What AWS services are documented for the technical stack?",
+      "ground_truth": "The AWS documentation includes services for compute, storage, networking, machine learning, and database management relevant to the technical stack.",
+      "type": "factual",
+      "expected_source": "aws.md"
+    }
+  ],
+  "retrieval_tests": [
+    {
+      "id": "doc_ret_001",
+      "query": "NIST AI Risk Management Framework functions",
+      "relevant_chunk_keywords": ["govern", "map", "measure", "manage", "risk", "framework", "function", "NIST"],
+      "expected_source": "AI_RMF_Playbook-1.pdf"
+    },
+    {
+      "id": "doc_ret_002",
+      "query": "agentic RAG architecture components",
+      "relevant_chunk_keywords": ["agentic", "RAG", "retrieval", "planning", "memory", "agent", "architecture"],
+      "expected_source": "survey_agentic_rag.pdf"
+    },
+    {
+      "id": "doc_ret_003",
+      "query": "AI trustworthiness characteristics NIST",
+      "relevant_chunk_keywords": ["trustworthy", "accuracy", "reliability", "safety", "security", "fairness", "NIST"],
+      "expected_source": "nist.ai.100-1.pdf"
+    },
+    {
+      "id": "doc_ret_004",
+      "query": "foundation models definition A16Z",
+      "relevant_chunk_keywords": ["foundation", "model", "generative", "LLM", "pretrained"],
+      "expected_source": "AI Glossary.pdf"
+    },
+    {
+      "id": "doc_ret_005",
+      "query": "project lifecycle phases PMP",
+      "relevant_chunk_keywords": ["initiation", "planning", "execution", "monitoring", "closure", "phase"],
+      "expected_source": "Generic PMPTemplate II.pdf"
+    },
+    {
+      "id": "doc_ret_006",
+      "query": "data center infrastructure requirements",
+      "relevant_chunk_keywords": ["power", "cooling", "network", "infrastructure", "redundancy"],
+      "expected_source": "datacenter.pdf"
+    },
+    {
+      "id": "doc_ret_007",
+      "query": "AWS services technical stack",
+      "relevant_chunk_keywords": ["AWS", "EC2", "S3", "Lambda", "service", "cloud"],
+      "expected_source": "aws.md"
+    },
+    {
+      "id": "doc_ret_008",
+      "query": "autonomous agent memory systems",
+      "relevant_chunk_keywords": ["memory", "agent", "autonomous", "episodic", "working", "long-term"],
+      "expected_source": "Agentic_AI_Autonomous_Intelligence.pdf"
+    }
+  ]
+}

@@ -35,10 +35,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from config import (
     LLM_MODEL, EMBED_MODEL, OLLAMA_BASE_URL, TOP_K,
-    CHUNK_SIZE, CHUNK_OVERLAP, SIMILARITY_THRESHOLD,
-    LLM_BACKEND, LMSTUDIO_BASE_URL, LMSTUDIO_LLM_MODEL, OLLAMA_LLM_MODEL
+    CHUNK_SIZE, CHUNK_OVERLAP, SIMILARITY_THRESHOLD
 )
-from query import initialize_rag_system, create_query_engine, format_response, query_with_fallback
+from query import initialize_rag_system, create_query_engine, format_response
 from custom_retriever import create_filtered_retriever
 
 # Import LlamaIndex components for detailed timing
@@ -192,29 +191,28 @@ class BenchmarkV2:
             # This is the key difference from standard LlamaIndex approach
             self.node_postprocessors = []
             
-            # CRITICAL: Use EXACT SAME prompt as production (query.py lines 235-248)
-            # This ensures benchmarks test the actual production behavior
+            # Create response synthesizer with SAME prompt as production (from query.py)
             qa_prompt_template = (
-                "You are a knowledgeable AI assistant. Answer the user's question based on the provided context documents when available.\n\n"
-                "Context information from indexed documents:\n"
+                "You are an AI assistant answering questions based on provided context documents.\n"
+                "Context information is below.\n"
                 "---------------------\n"
                 "{context_str}\n"
-                "---------------------\n\n"
-                "Instructions:\n"
-                "1. If the context contains relevant information, use it to answer the question comprehensively.\n"
-                "2. If the context is empty or insufficient, provide a helpful answer based on your general knowledge.\n"
-                "3. Be direct, clear, and professional in your responses.\n"
-                "4. Never fabricate information or claim something is in the documents when it isn't.\n"
-                "5. Provide accurate, well-structured answers that directly address the user's question.\n\n"
+                "---------------------\n"
+                "Given the context information above, answer the following question in a clear, comprehensive, and well-structured manner.\n"
+                "If the context doesn't contain enough information to fully answer the question, say so explicitly.\n"
+                "Provide specific details and examples from the context when possible.\n"
+                "Format your response with:\n"
+                "1. A direct answer to the question\n"
+                "2. Supporting details from the context\n"
+                "3. Any relevant implications or considerations\n\n"
                 "Question: {query_str}\n"
-                "Answer:"
+                "Answer: "
             )
             self.qa_prompt = PromptTemplate(qa_prompt_template)
             
             self.response_synthesizer = get_response_synthesizer(
                 text_qa_template=self.qa_prompt,
-                response_mode="compact",
-                streaming=False  # Benchmarks use non-streaming for accurate timing
+                response_mode="compact"
             )
             
             self._initialized = True
@@ -632,9 +630,7 @@ class BenchmarkV2:
             print(f"\n[{query_id}] {question[:50]}...")
             
             try:
-                # CRITICAL: Use query_with_fallback (same as production app.py)
-                # This tests the actual production pipeline including fallback logic
-                response = query_with_fallback(self.query_engine, question)
+                response = self.query_engine.query(question)
                 answer = str(response)
                 
                 # Extract FULL context texts from source nodes (not truncated preview)
@@ -683,24 +679,12 @@ class BenchmarkV2:
                 "ground_truth": ground_truths
             })
             
-            # Configure RAGAS to use the SAME backend as production
-            # Embeddings always use Ollama, but LLM respects LLM_BACKEND config
-            if LLM_BACKEND == "lmstudio":
-                # For LM Studio, fall back to Ollama for RAGAS (LangChain doesn't support LM Studio)
-                # This is acceptable since RAGAS needs any local LLM for evaluation
-                print("   Note: Using Ollama LLM for RAGAS evaluation (LM Studio not supported by LangChain)")
-                ragas_llm = LangchainOllama(
-                    model=OLLAMA_LLM_MODEL,
-                    base_url=OLLAMA_BASE_URL,
-                    temperature=0.1,
-                )
-            else:
-                ragas_llm = LangchainOllama(
-                    model=LLM_MODEL,
-                    base_url=OLLAMA_BASE_URL,
-                    temperature=0.1,
-                )
-            
+            # Configure RAGAS to use Ollama (same as our pipeline) instead of OpenAI
+            ragas_llm = LangchainOllama(
+                model=LLM_MODEL,
+                base_url=OLLAMA_BASE_URL,
+                temperature=0.1,
+            )
             ragas_embeddings = OllamaEmbeddings(
                 model=EMBED_MODEL,
                 base_url=OLLAMA_BASE_URL,
@@ -817,8 +801,7 @@ class BenchmarkV2:
             print(f"\n[{query_id}] {query_text[:50]}...")
             
             try:
-                # Use query_with_fallback (same as production)
-                response = query_with_fallback(self.query_engine, query_text)
+                response = self.query_engine.query(query_text)
                 
                 # Get full text from source nodes for better relevance detection
                 full_texts = self._get_full_context_from_response(response)
@@ -1050,8 +1033,7 @@ class BenchmarkV2:
                 """Execute a single query and return latency and error."""
                 try:
                     start = time.time()
-                    # Use query_with_fallback (same as production)
-                    response = query_with_fallback(self.query_engine, query_text)
+                    response = self.query_engine.query(query_text)
                     end = time.time()
                     return end - start, None
                 except Exception as e:
@@ -1252,8 +1234,7 @@ class BenchmarkV2:
                 hw_monitor.start()
                 
                 start_time = time.time()
-                # Use query_with_fallback (same as production)
-                response = query_with_fallback(temp_engine, test_query)
+                response = temp_engine.query(test_query)
                 end_time = time.time()
                 
                 hw_stats = hw_monitor.stop()
